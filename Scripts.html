@@ -46,7 +46,9 @@
           }
         } else { 
           document.getElementById('p-eval').classList.remove('hidden'); 
-          if(res.role === 'Provinsi') {
+          const isProv = res.role === 'Provinsi';
+          document.getElementById('menu-verif').innerHTML = `<i class="bi bi-clipboard-check me-2"></i> ${isProv ? 'VALIDASI' : 'VERIFIKASI'}`;
+          if(isProv) {
             document.getElementById('menu-dashboard').classList.add('hidden');
             document.getElementById('menu-soal').classList.add('hidden');
             document.getElementById('menu-user').classList.add('hidden');
@@ -320,6 +322,12 @@
   let activeFilter = 'semua';
 
   function initV() {
+    const isProv = sess.role === 'Provinsi';
+    document.getElementById('menu-verif').innerHTML = `<i class="bi bi-clipboard-check me-2"></i> ${isProv ? 'VALIDASI' : 'VERIFIKASI'}`;
+    document.getElementById('v-title').innerText = isProv ? 'Validasi Data' : 'Verifikasi Data';
+    document.getElementById('v-progress-label').innerText = isProv ? 'Progress Validasi' : 'Progress Verifikasi';
+    document.getElementById('v-btn-save').innerText = isProv ? '💾 SIMPAN VALIDASI' : '💾 SIMPAN VERIFIKASI';
+
     document.getElementById('v-card-grid').innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"></div><p class="mt-2 fw-bold small">Memuat daftar OPD...</p></div>';
     google.script.run.withSuccessHandler(res => {
       opdListCache = res || [];
@@ -435,10 +443,10 @@
 
     let h = `
       <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
-        <span>Memverifikasi Dimensi Tata Kelola: <b>${opdName}</b> (${isProv ? 'Provinsi' : 'Kabupaten'})</span>
+        <span>${isProv ? 'Memvalidasi' : 'Memverifikasi'} Dimensi Tata Kelola: <b>${opdName}</b> (${isProv ? 'Provinsi' : 'Kabupaten'})</span>
         <div class="d-flex gap-2">
           <button class="btn btn-sm btn-outline-primary fw-bold" onclick="samakanSkorSemua()">
-            <i class="bi bi-check-all"></i> Samakan Semua (dari Responden)
+            <i class="bi bi-check-all"></i> Samakan Semua (dari ${isProv ? 'Kabupaten' : 'Responden'})
           </button>
           ${!isProv ? `<button class="btn btn-sm btn-danger fw-bold" onclick="aksiHapus('jawaban', '${opdName}')">
             <i class="bi bi-arrow-counterclockwise"></i> Reset Responden
@@ -490,7 +498,7 @@
               <a href="${it.link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-link-45deg"></i> Bukti Dukung</a>
             </div>
             <button class="btn btn-sm btn-primary fw-bold" onclick="samakanSkorSatu(${i})">
-              <i class="bi bi-arrow-right-short"></i> Samakan (Resp)
+              <i class="bi bi-arrow-right-short"></i> Samakan (${isProv ? 'Kab' : 'Resp'})
             </button>
           </div>
           <div class="col-12 d-flex gap-2 align-items-center">
@@ -508,8 +516,8 @@
 
   function samakanSkorSatu(idx) {
     if (sess.role === 'Provinsi') {
-      vData[idx].skala_provinsi = vData[idx].skala_responden;
-      document.getElementById('sel-prov-' + idx).value = vData[idx].skala_responden;
+      vData[idx].skala_provinsi = vData[idx].skala_evaluator;
+      document.getElementById('sel-prov-' + idx).value = vData[idx].skala_evaluator;
       const card = document.getElementById('sel-prov-' + idx).closest('.q-card');
       card.style.backgroundColor = '#f0fff4';
       setTimeout(() => card.style.backgroundColor = 'white', 500);
@@ -524,29 +532,37 @@
 
   function samakanSkorSemua() {
     const opdName = document.getElementById('v-det').dataset.currentOpd;
-    if (sess.role === 'Provinsi') {
-      vData.forEach((it, i) => { vData[i].skala_provinsi = it.skala_responden; });
+    const isProv = sess.role === 'Provinsi';
+    if (isProv) {
+      vData.forEach((it, i) => { vData[i].skala_provinsi = it.skala_evaluator; });
     } else {
       vData.forEach((it, i) => { vData[i].skala_evaluator = it.skala_responden; });
     }
     renderVList(opdName);
-    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Semua skor telah disamakan dengan responden.', timer: 1000, showConfirmButton: false });
+    Swal.fire({ 
+      icon: 'success', 
+      title: 'Berhasil', 
+      text: isProv ? 'Semua skor telah disamakan dengan hasil verifikasi kabupaten.' : 'Semua skor telah disamakan dengan responden.', 
+      timer: 1000, 
+      showConfirmButton: false 
+    });
   }
 
   function kirimV() { 
     const opdName = document.getElementById('v-det').dataset.currentOpd;
     if (!opdName) return Swal.fire('Error', 'OPD tidak ditemukan', 'error');
+    const isProv = sess.role === 'Provinsi';
     Swal.fire({title:'Menyimpan...', didOpen:()=>Swal.showLoading()}); 
     google.script.run.withSuccessHandler(()=> {
       Swal.fire({
-        icon: 'success', title: 'Tersimpan', text: 'Verifikasi berhasil diperbarui.',
+        icon: 'success', title: 'Tersimpan', text: isProv ? 'Validasi berhasil diperbarui.' : 'Verifikasi berhasil diperbarui.',
         showConfirmButton: true, confirmButtonText: 'Kembali ke Daftar',
         showCancelButton: true, cancelButtonText: 'Tetap di Halaman Ini'
       }).then(result => {
         if (result.isConfirmed) kembaliKeGrid();
       });
     })
-      .withFailureHandler(err => { Swal.fire('Error', 'Gagal menyimpan verifikasi: ' + (err.message || err), 'error'); })
+      .withFailureHandler(err => { Swal.fire('Error', (isProv ? 'Gagal menyimpan validasi: ' : 'Gagal menyimpan verifikasi: ') + (err.message || err), 'error'); })
       .simpanVerifikasi({opd: opdName, items: vData, role: sess.role}); 
   }
 

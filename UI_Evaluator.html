@@ -69,14 +69,14 @@
       
       <div class="tab-pane fade" id="t-verif">
         <div id="v-header-section" class="d-flex justify-content-between align-items-center mb-3">
-          <h4 class="fw-bold m-0">Verifikasi Data</h4>
+          <h4 class="fw-bold m-0" id="v-title">Verifikasi Data</h4>
           <span id="v-summary-badge" class="badge bg-black fs-6 px-3 py-2" style="border:var(--brut-border);box-shadow:var(--brut-shadow-sm);">Memuat...</span>
         </div>
 
         <!-- Progress Bar -->
         <div id="v-progress-section" class="brut-card p-3 mb-3" style="background:var(--accent);">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="fw-bold small text-uppercase">Progress Verifikasi</span>
+            <span class="fw-bold small text-uppercase" id="v-progress-label">Progress Verifikasi</span>
             <span id="v-progress-text" class="fw-bold">0/0 OPD</span>
           </div>
           <div class="progress" style="height:22px;">
@@ -112,7 +112,7 @@
           </div>
           <div id="v-list"></div>
           <div class="text-end mt-4">
-            <button class="btn btn-brut btn-brut-green px-5" onclick="kirimV()">💾 SIMPAN VERIFIKASI</button>
+            <button class="btn btn-brut btn-brut-green px-5" id="v-btn-save" onclick="kirimV()">💾 SIMPAN VERIFIKASI</button>
           </div>
         </div>
       </div>
