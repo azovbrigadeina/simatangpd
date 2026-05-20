@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <?!= include('Styles'); ?>
+</head>
+<body>
+
+<div id="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
+  <!-- Landing Page -->
+  <div id="p-land" class="bg-vibrant" style="min-height: 100vh; display: flex; align-items: center; color: #000; text-align: center;">
+    <div class="container">
+      <div class="mb-4">
+        <div class="brut-float mx-auto" style="width: 180px; height: 180px; background: white; border: 5px solid #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+          <img src="https://i.postimg.cc/1RnrL0Kq/j7u-Um-removebg-preview.png" alt="SIMatang Logo" style="width: 140px; height: auto;">
+        </div>
+      </div>
+      <h1 class="display-4 fw-bold mb-1" style="letter-spacing: -1px;">SIMatang-PD</h1>
+      <p class="lead mb-5 fw-bold mx-auto" style="max-width: 600px; font-size: 1.25rem; background: var(--accent); display: inline-block; padding: 5px 15px; border: 3px solid #000;">Sistem Informasi Kematangan Perangkat Daerah</p>
+      
+        <span class="badge-brut" style="font-size: 1rem; letter-spacing: 2px;">PILIH AKSES</span>
+
+      <div class="row justify-content-center g-4">
+        <div class="col-md-4 col-lg-3" onclick="openL('Responden')">
+          <div class="p-4 brut-card" style="cursor:pointer; background: var(--pink); color: white;">
+            <div class="mb-3" style="font-size: 3rem;">📝</div>
+            <h4 class="fw-bold mb-0">RESPONDEN</h4>
+            <p class="small mt-2 fw-bold text-uppercase" style="font-size: 0.8rem; background: #000; display: inline-block; padding: 2px 8px;">Input Data</p>
+          </div>
+        </div>
+        <div class="col-md-4 col-lg-3" onclick="openL('Evaluator')">
+          <div class="p-4 brut-card" style="cursor:pointer; background: var(--green);">
+            <div class="mb-3" style="font-size: 3rem;">🛡️</div>
+            <h4 class="fw-bold mb-0">EVALUATOR</h4>
+            <p class="small mt-2 fw-bold text-uppercase" style="font-size: 0.8rem; background: #000; color: #fff; display: inline-block; padding: 2px 8px;">Verifikasi</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UI Components -->
+  <?!= include('UI_Responden'); ?>
+  <?!= include('UI_Evaluator'); ?>
+
+</div>
+
+<!-- Footer Global -->
+<footer id="global-footer" class="main-footer">
+  Made with ❤️ by <b>Bagian Organisasi Setda Kab. Muaro Jambi</b> 🇮🇩x🇺🇦
+</footer>
+
+<!-- Modals -->
+<?!= include('UI_Modals'); ?>
+
+<!-- Scripts -->
+<?!= include('Scripts'); ?>
+
+</body>
+</html>

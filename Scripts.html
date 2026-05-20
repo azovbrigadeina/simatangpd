@@ -1,0 +1,1016 @@
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+  let sess = {}, grp = {}, cats = [], ans = {}, totQ = 0, step = 0, vData = [], currentDataDetail = [], myChart;
+  let mLogin, mDetail, modalAddUser;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    mLogin = new bootstrap.Modal(document.getElementById('modL'));
+    mDetail = new bootstrap.Modal(document.getElementById('modalDetail'));
+    modalAddUser = new bootstrap.Modal(document.getElementById('modalAddUser'));
+  });
+
+  function openL(r) { sess.role = r; document.getElementById('titleL').innerText = 'LOGIN ' + r.toUpperCase(); mLogin.show(); }
+  
+  function doL() {
+    const u = document.getElementById('ui').value, p = document.getElementById('pi').value;
+    if(!u || !p) return Swal.fire('Error','Lengkapi data login','error');
+    Swal.fire({title:'Menghubungkan...', didOpen:()=>Swal.showLoading()});
+    
+    google.script.run.withSuccessHandler(res => {
+      Swal.close();
+      if(res.status === "success") { 
+        sess = res; mLogin.hide(); 
+        document.getElementById('p-land').classList.add('hidden');
+        
+        if(res.role === "Responden") { 
+          document.getElementById('p-resp').classList.remove('hidden'); 
+          document.getElementById('opd-name').innerText = res.nama_opd;
+          if(res.sudahIsi) {
+            document.getElementById('f-cont').innerHTML = `
+              <div class="card p-5 text-center shadow-sm border-0">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                <h3 class="fw-bold mt-3">Data Sudah Terkirim</h3>
+                <p class="text-muted">OPD Anda telah menyelesaikan pengisian kuesioner PEKPPP.<br>
+                Akses pengisian dikunci untuk menjaga validitas data.</p>
+                <div class="alert alert-warning d-inline-block">
+                  <i class="bi bi-info-circle"></i> Hubungi <b>Evaluator (Bagian Organisasi)</b> jika perlu melakukan perbaikan data.
+                </div>
+              </div>`;
+            document.querySelector('.sticky-top').classList.add('hidden');
+          } else {
+            initR();
+          }
+        } else { 
+          document.getElementById('p-eval').classList.remove('hidden'); 
+          if(res.role === 'Provinsi') {
+            document.getElementById('menu-dashboard').classList.add('hidden');
+            document.getElementById('menu-soal').classList.add('hidden');
+            document.getElementById('menu-user').classList.add('hidden');
+            document.getElementById('menu-setting').classList.add('hidden');
+            document.getElementById('menu-verif').click();
+          } else {
+            loadStats(); 
+          }
+        }
+      } else Swal.fire('Gagal', res.message, 'error');
+    }).prosesLogin(u,p);
+  }
+
+  function getKategori(nilai) {
+    const n = parseFloat(nilai);
+    if (n >= 46.1) return { label: "Sangat Tinggi", color: "#0d6efd" }; // Blue
+    if (n >= 37.1) return { label: "Tinggi", color: "#198754" }; // Green
+    if (n >= 28.1) return { label: "Sedang", color: "#fd7e14" }; // Orange
+    if (n >= 19.1) return { label: "Rendah", color: "#dc3545" }; // Red
+    return { label: "Sangat Rendah", color: "#b02a37" }; // Dark Red
+  }
+
+  // --- RESPONDEN ---
+  function initR() {
+    const namaOPD = document.getElementById('opd-name').innerText;
+    
+    // Tampilkan Loading Awal
+    document.getElementById('f-cont').innerHTML = `
+      <div class="text-center py-5">
+        <div class="spinner-border text-black mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+        <h4 class="fw-bold">MENYIAPKAN DATA...</h4>
+        <p class="small text-muted">Sedang mengambil 11 Variabel dari server.</p>
+      </div>`;
+
+    google.script.run
+      .withFailureHandler(err => {
+        document.getElementById('f-cont').innerHTML = `<div class="brut-card bg-white text-danger border-danger"><b>ERROR SERVER:</b> ${err.message}</div>`;
+      })
+      .withSuccessHandler(status => {
+        if (!status.isOpen) {
+          document.querySelector('.sticky-top').classList.add('hidden');
+          document.getElementById('f-cont').innerHTML = `<div class="brut-card text-center py-5" style="background:var(--pink);color:#fff"><h3 class="fw-bold">Periode Ditutup</h3><p>${status.pesan}</p></div>`;
+          return;
+        }
+        
+        google.script.run
+          .withFailureHandler(err => {
+            document.getElementById('f-cont').innerHTML = `<div class="brut-card bg-white text-danger border-danger"><b>GAGAL MUAT SOAL:</b> ${err.message}</div>`;
+          })
+          .withSuccessHandler(rawData => {
+            if(!rawData || rawData.length === 0) {
+              document.getElementById('f-cont').innerHTML = `<div class="brut-card text-center py-5">Data Master Pertanyaan belum diisi di Spreadsheet.</div>`;
+              return;
+            }
+
+            const grouped = {};
+            const keys = [];
+            rawData.forEach(r => {
+              const varId = r[1];
+              if(!varId) return;
+              if(!grouped[varId]) {
+                grouped[varId] = { id: varId, nama: r[2] || "Variabel Tanpa Nama", levels: {} };
+                keys.push(varId);
+              }
+              grouped[varId].levels[r[3]] = { indicator: r[4] || "-", explanation: r[5] || "-", evidenceReq: r[6] || "-" };
+            });
+            
+            grp = grouped;
+            cats = keys;
+            totQ = keys.length;
+            
+            if(totQ === 0) {
+              document.getElementById('f-cont').innerHTML = `<div class="brut-card text-center py-5">Format data spreadsheet tidak dikenali. Pastikan ID_Variabel (Kolom B) terisi.</div>`;
+            } else {
+              showS(0);
+            }
+          }).getPertanyaan();
+      }).cekStatusPeriode(namaOPD);
+  }
+  
+  function showS(idx) {
+    if (idx < 0 || idx >= cats.length) return;
+    step = idx; 
+    const varId = cats[idx];
+    const v = grp[varId];
+    const cont = document.getElementById('f-cont');
+    
+    if(!ans[varId]) ans[varId] = { id: varId, level: "", link: "" };
+    
+    document.getElementById('k-lab').innerText = `VARIABEL ${idx + 1}`;
+    
+    let h = `
+    <div class="brut-card" style="background: var(--accent);">
+      <h3 class="fw-bold mb-0 text-uppercase">${v.nama}</h3>
+    </div>
+    
+    <div class="mb-3"><label class="badge-brut">PILIH TINGKAT KEMATANGAN:</label></div>
+    
+    <div id="maturity-list" class="d-flex flex-column gap-3 mb-4">
+      ${[1,2,3,4,5].map(lvl => {
+        const detail = v.levels[lvl] || { indicator: "Detail tingkat ini belum diisi.", explanation: "-", evidenceReq: "-" };
+        const isSelected = ans[varId].level.toString() === lvl.toString();
+        return `
+          <div id="card-lvl-${lvl}" 
+               class="brut-card p-3 mb-0" 
+               style="cursor:pointer; background:${isSelected ? 'var(--green)' : 'white'}; transition: 0.2s;"
+               onclick="selectLvl('${varId}', ${lvl})">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-black text-white px-3">TINGKAT ${romanize(lvl)}</span>
+              <span id="check-${lvl}" class="fw-bold text-black ${isSelected ? '' : 'hidden'}"><i class="bi bi-check-circle-fill"></i> TERPILIH</span>
+            </div>
+            <div class="fw-bold mb-1">${detail.indicator}</div>
+            <div class="small opacity-75 mb-2">${detail.explanation.replace(/\n/g, '<br>')}</div>
+            <div class="p-2 border-top border-black border-1 bg-white bg-opacity-25 mt-1 small">
+              <strong>BUKTI:</strong> ${detail.evidenceReq}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    
+    <div class="brut-card bg-white">
+      <label class="fw-bold mb-2">LINK GOOGLE DRIVE (BUKTI DUKUNG):</label>
+      <input type="url" class="form-control" id="inp-link" 
+             placeholder="https://drive.google.com/..." 
+             value="${ans[varId].link}" 
+             oninput="ans['${varId}'].link = this.value; upP();">
+    </div>
+
+    <div class="d-flex justify-content-between mt-4 pb-5">
+      <button class="btn btn-brut bg-light" onclick="showS(${idx-1})" ${idx===0?'disabled':''}>KEMBALI</button>
+      ${idx < cats.length-1 ? `<button class="btn btn-brut" onclick="nextS()">LANJUT</button>` : `<button class="btn btn-brut btn-brut-green" onclick="finS()">KIRIM JAWABAN</button>`}
+    </div>`;
+
+    cont.innerHTML = h;
+    upP(); 
+    window.scrollTo(0,0);
+  }
+
+  function selectLvl(varId, lvl) {
+    ans[varId].level = lvl;
+    
+    // Update UI instan tanpa re-render seluruh halaman (Lebih Cepat)
+    for(let l=1; l<=5; l++) {
+      const card = document.getElementById(`card-lvl-${l}`);
+      const check = document.getElementById(`check-${l}`);
+      if(card) card.style.background = (l === lvl) ? 'var(--green)' : 'white';
+      if(check) {
+        if(l === lvl) check.classList.remove('hidden');
+        else check.classList.add('hidden');
+      }
+    }
+    upP();
+  }
+
+  function romanize(num) {
+    const lookup = {V:5,IV:4,III:3,II:2,I:1};
+    return Object.keys(lookup).find(key => lookup[key] === Number(num)) || num;
+  }
+
+  function isV(l) { 
+    return l && (l.startsWith('http://') || l.startsWith('https://')); 
+  }
+
+  function nextS() { 
+    const varId = cats[step];
+    const a = ans[varId];
+    
+    if(!a || !a.level) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'BELUM PILIH TINGKAT',
+        text: 'Silakan pilih salah satu Tingkat Kematangan (I - V) terlebih dahulu.',
+        confirmButtonColor: '#000'
+      });
+    }
+    
+    if(!a.link || !a.link.trim()) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'LINK KOSONG',
+        text: 'Silakan lampirkan link Google Drive sebagai bukti dukung.',
+        confirmButtonColor: '#000'
+      });
+    }
+
+    showS(step + 1); 
+  }
+
+
+  function upP() { 
+    if(totQ===0) return; 
+    let f = Object.values(ans).filter(a => a.level && a.link && isV(a.link)).length; 
+    let p = Math.round((f/totQ)*100); 
+    document.getElementById('p-bar').style.width = p+'%'; 
+    document.getElementById('p-tex').innerText = p+'%'; 
+  }
+
+  function finS() { 
+    const answeredCount = Object.values(ans).filter(a => a.level && a.link && isV(a.link)).length;
+    if(answeredCount < totQ) return Swal.fire('BELUM SELESAI', `Anda baru mengisi ${answeredCount} dari ${totQ} variabel.`,'warning');
+
+    Swal.fire({
+      title: 'KIRIM JAWABAN?',
+      text: "Data yang sudah dikirim tidak dapat diubah kembali tanpa izin admin.",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'YA, KIRIM!',
+      confirmButtonColor: '#00FF41',
+      cancelButtonColor: '#FF00E5'
+    }).then(result => {
+      if(result.isConfirmed) {
+        Swal.fire({title:'Mengirim data...', didOpen:()=>Swal.showLoading()}); 
+        // Mapping answer back to format expected by server: [{id_var, level, link}]
+        google.script.run.withSuccessHandler(() => {
+          window.top.location.href = 'https://bagorsetdamuarojambi.blogspot.com/';
+        }).simpanSemuaJawaban({opd: sess.nama_opd, jawaban: Object.values(ans)});
+      }
+    });
+  }
+
+  // --- EVALUATOR LOGIC ---
+  function loadStats() {
+    google.script.run.withSuccessHandler(res => {
+      document.getElementById('s-mandiri-val').innerText = parseFloat(res.avgMandiri).toFixed(2);
+      document.getElementById('s-kab-val').innerText = parseFloat(res.avgProvinsi).toFixed(2);
+      
+      const katMandiri = getKategori(res.avgMandiri);
+      const katKab = getKategori(res.avgProvinsi);
+      
+      const lblMandiri = document.getElementById('s-mandiri-lbl');
+      lblMandiri.innerText = katMandiri.label;
+      lblMandiri.className = 'badge fs-6 mt-2';
+      lblMandiri.style.backgroundColor = katMandiri.color;
+      
+      const lblKab = document.getElementById('s-kab-lbl');
+      lblKab.innerText = katKab.label;
+      lblKab.className = 'badge fs-6 mt-2';
+      lblKab.style.backgroundColor = katKab.color;
+      
+      document.getElementById('card-mandiri').style.borderBottom = `8px solid ${katMandiri.color}`;
+      document.getElementById('card-kab').style.borderBottom = `8px solid ${katKab.color}`;
+      
+      // Render Lists
+      const renderList = (arr, elId) => {
+        let html = '';
+        if(!arr || arr.length === 0) {
+          html = '<li class="list-group-item text-muted text-center py-3">Belum ada data</li>';
+        } else {
+          arr.forEach((it, i) => {
+            html += `<li class="list-group-item d-flex justify-content-between align-items-center px-2 py-2">
+              <span class="text-truncate" style="max-width: 70%;" title="${it.opd}"><b>${i+1}.</b> ${it.opd}</span>
+              <span class="badge bg-black rounded-pill">${parseFloat(it.nilai).toFixed(2)}</span>
+            </li>`;
+          });
+        }
+        document.getElementById(elId).innerHTML = html;
+      };
+
+      renderList(res.top5Mandiri, 'list-top-mandiri');
+      renderList(res.bottom5Mandiri, 'list-bot-mandiri');
+      renderList(res.top5Kab, 'list-top-kab');
+      renderList(res.bottom5Kab, 'list-bot-kab');
+
+    }).withFailureHandler(err => {
+      Swal.fire('Error', 'Gagal memuat dashboard: ' + (err.message || err), 'error');
+    }).getStats();
+  }
+
+  let opdListCache = [];
+  let activeFilter = 'semua';
+
+  function initV() {
+    document.getElementById('v-card-grid').innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"></div><p class="mt-2 fw-bold small">Memuat daftar OPD...</p></div>';
+    google.script.run.withSuccessHandler(res => {
+      opdListCache = res || [];
+      renderOPDGrid();
+    }).withFailureHandler(err => {
+      document.getElementById('v-card-grid').innerHTML = '<div class="brut-card text-danger"><b>ERROR:</b> ' + (err.message || err) + '</div>';
+    }).getOPDSudahKirim();
+  }
+
+  function renderOPDGrid() {
+    const isProv = sess.role === 'Provinsi';
+    const grid = document.getElementById('v-card-grid');
+    const search = (document.getElementById('v-search').value || '').toLowerCase();
+
+    // Determine status per OPD
+    let selesaiCount = 0;
+    let html = '';
+    let visibleCount = 0;
+
+    opdListCache.forEach((item, idx) => {
+      const verif = isProv ? item.verifProv : item.verifKab;
+      const total = item.totalVar;
+      let status, statusClass, badgeClass, statusLabel, badgeText;
+
+      if (verif >= total && total > 0) {
+        status = 'selesai'; statusClass = 'opd-item--selesai'; badgeClass = 'opd-item__badge--selesai';
+        statusLabel = '✅ Selesai'; badgeText = '✓';
+        selesaiCount++;
+      } else if (verif > 0) {
+        status = 'sebagian'; statusClass = 'opd-item--sebagian'; badgeClass = 'opd-item__badge--sebagian';
+        statusLabel = `⚠️ ${verif}/${total}`; badgeText = `${verif}`;
+      } else {
+        status = 'belum'; statusClass = 'opd-item--belum'; badgeClass = 'opd-item__badge--belum';
+        statusLabel = '⏳ Belum'; badgeText = '—';
+      }
+
+      // Filter by status
+      if (activeFilter !== 'semua' && status !== activeFilter) return;
+      // Filter by search
+      if (search && !item.opd.toLowerCase().includes(search)) return;
+
+      visibleCount++;
+      html += `
+        <div class="opd-item ${statusClass}" onclick="pilihOPD('${item.opd.replace(/'/g, "\\'")}')" title="${item.opd}">
+          <div class="opd-item__info">
+            <div class="opd-item__name">${item.opd}</div>
+            <div class="opd-item__status" style="color:${status==='selesai'?'#198754':status==='sebagian'?'#856404':'#dc3545'}">${statusLabel}</div>
+          </div>
+          <div class="opd-item__badge ${badgeClass}">${badgeText}</div>
+        </div>`;
+    });
+
+    if (visibleCount === 0) {
+      html = '<div class="text-center py-4 text-muted fw-bold" style="grid-column:1/-1;">Tidak ada OPD yang cocok</div>';
+    }
+
+    grid.innerHTML = html;
+
+    // Update progress bar
+    const totalOPD = opdListCache.length;
+    const pct = totalOPD > 0 ? Math.round((selesaiCount / totalOPD) * 100) : 0;
+    document.getElementById('v-progress-bar').style.width = pct + '%';
+    document.getElementById('v-progress-text').innerText = `${selesaiCount}/${totalOPD} OPD`;
+    document.getElementById('v-summary-badge').innerText = `${selesaiCount}/${totalOPD} Selesai`;
+  }
+
+  function setFilter(btn, status) {
+    activeFilter = status;
+    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderOPDGrid();
+  }
+
+  function filterOPDCards() {
+    renderOPDGrid();
+  }
+
+  function pilihOPD(namaOPD) {
+    Swal.fire({title:'Memuat data...', didOpen:()=>Swal.showLoading()});
+    google.script.run.withSuccessHandler(res => { 
+      Swal.close(); vData = res.items;
+      // Sembunyikan grid, tampilkan detail
+      document.getElementById('v-card-grid').classList.add('hidden');
+      document.getElementById('v-progress-section').classList.add('hidden');
+      document.getElementById('v-search-section').classList.add('hidden');
+      document.getElementById('v-header-section').classList.add('hidden');
+      renderVList(namaOPD);
+    }).withFailureHandler(err => {
+      Swal.fire('Error', 'Gagal memuat data verifikasi: ' + (err.message || err), 'error');
+    }).getJawabanByOPD(namaOPD);
+  }
+
+  function kembaliKeGrid() {
+    document.getElementById('v-det').classList.add('hidden');
+    document.getElementById('v-card-grid').classList.remove('hidden');
+    document.getElementById('v-progress-section').classList.remove('hidden');
+    document.getElementById('v-search-section').classList.remove('hidden');
+    document.getElementById('v-header-section').classList.remove('hidden');
+    // Refresh status dari server
+    initV();
+  }
+  
+  function muatV() {
+    // Legacy compat — tidak dipanggil lagi dari UI baru
+    const o = document.getElementById('sel-v') ? document.getElementById('sel-v').value : ''; 
+    if(!o) return;
+    pilihOPD(o);
+  }
+
+  function renderVList(opdName) {
+    document.getElementById('v-det').classList.remove('hidden');
+    const isProv = sess.role === 'Provinsi';
+
+    let h = `
+      <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
+        <span>Memverifikasi Dimensi Tata Kelola: <b>${opdName}</b> (${isProv ? 'Provinsi' : 'Kabupaten'})</span>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary fw-bold" onclick="samakanSkorSemua()">
+            <i class="bi bi-check-all"></i> Samakan Semua (dari Responden)
+          </button>
+          ${!isProv ? `<button class="btn btn-sm btn-danger fw-bold" onclick="aksiHapus('jawaban', '${opdName}')">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset Responden
+          </button>` : ''}
+        </div>
+      </div>`;
+    
+    document.getElementById('v-list').innerHTML = h + vData.map((it, i) => {
+      // Input untuk Kabupaten
+      const evalInput = isProv 
+        ? `<div class="badge-resp"><small class="d-block text-muted">Kab:</small><span class="badge bg-primary fs-6">${it.skala_evaluator || '-'}</span></div>`
+        : `
+          <div class="col-eval-skala">
+            <small class="d-block text-muted text-primary fw-bold">Skala Kab:</small>
+            <select id="sel-eval-${i}" class="form-select form-select-sm border-primary" onchange="vData[${i}].skala_evaluator=this.value">
+              <option value="">-</option>
+              ${[0,1,2,3,4,5].map(v=>`<option value="${v}" ${it.skala_evaluator.toString()===v.toString()?'selected':''}>${v}</option>`).join('')}
+            </select>
+          </div>
+          <div class="col-eval-catatan">
+            <small class="d-block text-muted text-primary fw-bold">Catatan Kab:</small>
+            <textarea class="form-control form-control-sm border-primary" rows="1" oninput="vData[${i}].catatan=this.value" placeholder="..."> ${it.catatan||''}</textarea>
+          </div>
+        `;
+        
+      // Input untuk Provinsi
+      const provInput = isProv 
+        ? `
+          <div class="col-eval-skala">
+            <small class="d-block text-muted text-success fw-bold">Skala Prov:</small>
+            <select id="sel-prov-${i}" class="form-select form-select-sm border-success" onchange="vData[${i}].skala_provinsi=this.value">
+              <option value="">-</option>
+              ${[0,1,2,3,4,5].map(v=>`<option value="${v}" ${it.skala_provinsi.toString()===v.toString()?'selected':''}>${v}</option>`).join('')}
+            </select>
+          </div>
+          <div class="col-eval-catatan">
+            <small class="d-block text-muted text-success fw-bold">Catatan Prov:</small>
+            <textarea class="form-control form-control-sm border-success" rows="1" oninput="vData[${i}].catatan_provinsi=this.value" placeholder="..."> ${it.catatan_provinsi||''}</textarea>
+          </div>
+        ` 
+        : `<div class="badge-resp"><small class="d-block text-muted">Prov:</small><span class="badge bg-success fs-6">${it.skala_provinsi || '-'}</span></div>`;
+
+      return `
+      <div class="q-card shadow-sm border-start border-5 ${isProv ? 'border-success' : 'border-primary'}">
+        <div class="row align-items-center">
+          <div class="col-12 mb-3 d-flex justify-content-between align-items-start">
+            <div>
+              <h6 class="fw-bold mb-1">${it.pertanyaan}</h6>
+              <a href="${it.link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-link-45deg"></i> Bukti Dukung</a>
+            </div>
+            <button class="btn btn-sm btn-primary fw-bold" onclick="samakanSkorSatu(${i})">
+              <i class="bi bi-arrow-right-short"></i> Samakan (Resp)
+            </button>
+          </div>
+          <div class="col-12 d-flex gap-2 align-items-center">
+            <div class="badge-resp"><small class="d-block text-muted">Resp:</small><span class="badge bg-secondary fs-6">${it.skala_responden}</span></div>
+            ${evalInput}
+            ${provInput}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Store current OPD name for save
+    document.getElementById('v-det').dataset.currentOpd = opdName;
+  }
+
+  function samakanSkorSatu(idx) {
+    if (sess.role === 'Provinsi') {
+      vData[idx].skala_provinsi = vData[idx].skala_responden;
+      document.getElementById('sel-prov-' + idx).value = vData[idx].skala_responden;
+      const card = document.getElementById('sel-prov-' + idx).closest('.q-card');
+      card.style.backgroundColor = '#f0fff4';
+      setTimeout(() => card.style.backgroundColor = 'white', 500);
+    } else {
+      vData[idx].skala_evaluator = vData[idx].skala_responden;
+      document.getElementById('sel-eval-' + idx).value = vData[idx].skala_responden;
+      const card = document.getElementById('sel-eval-' + idx).closest('.q-card');
+      card.style.backgroundColor = '#f0fff4';
+      setTimeout(() => card.style.backgroundColor = 'white', 500);
+    }
+  }
+
+  function samakanSkorSemua() {
+    const opdName = document.getElementById('v-det').dataset.currentOpd;
+    if (sess.role === 'Provinsi') {
+      vData.forEach((it, i) => { vData[i].skala_provinsi = it.skala_responden; });
+    } else {
+      vData.forEach((it, i) => { vData[i].skala_evaluator = it.skala_responden; });
+    }
+    renderVList(opdName);
+    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Semua skor telah disamakan dengan responden.', timer: 1000, showConfirmButton: false });
+  }
+
+  function kirimV() { 
+    const opdName = document.getElementById('v-det').dataset.currentOpd;
+    if (!opdName) return Swal.fire('Error', 'OPD tidak ditemukan', 'error');
+    Swal.fire({title:'Menyimpan...', didOpen:()=>Swal.showLoading()}); 
+    google.script.run.withSuccessHandler(()=> {
+      Swal.fire({
+        icon: 'success', title: 'Tersimpan', text: 'Verifikasi berhasil diperbarui.',
+        showConfirmButton: true, confirmButtonText: 'Kembali ke Daftar',
+        showCancelButton: true, cancelButtonText: 'Tetap di Halaman Ini'
+      }).then(result => {
+        if (result.isConfirmed) kembaliKeGrid();
+      });
+    })
+      .withFailureHandler(err => { Swal.fire('Error', 'Gagal menyimpan verifikasi: ' + (err.message || err), 'error'); })
+      .simpanVerifikasi({opd: opdName, items: vData, role: sess.role}); 
+  }
+
+  function loadHasil() {
+    google.script.run.withSuccessHandler(res => {
+      currentDataDetail = res;
+      document.getElementById('h-body').innerHTML = res.map((h, i) => {
+        const tMandiri = parseFloat(h.totalMandiri || 0).toFixed(2);
+        const tVerif = parseFloat(h.totalVerifikasi || 0).toFixed(2);
+        const tProv = parseFloat(h.totalProvinsi || 0).toFixed(2);
+        
+        let katLabel = "Menunggu Penilaian Provinsi";
+        let katColor = "#6c757d";
+        if (parseFloat(h.totalProvinsi) > 0) {
+           const kat = getKategori(tProv);
+           katLabel = kat.label;
+           katColor = kat.color;
+        }
+
+        return `<tr>
+          <td class="fw-bold px-3">${h.opd}</td>
+          <td class="text-center small">${tMandiri}</td>
+          <td class="text-center small">${tVerif}</td>
+          <td class="text-center small">${tProv}</td>
+          <td class="text-center fw-bold" style="color:${katColor}">${katLabel}</td>
+          <td class="text-center">
+            <div class="btn-group">
+              <button class="btn btn-sm btn-info text-white fw-bold" onclick="bukaDetail(${i})">Laporan</button>
+              <button class="btn btn-sm btn-primary fw-bold" onclick="cetakBeritaAcara(${i})">Berita Acara</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="aksiHapus('verifikasi', '${h.opd}')">Hapus</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }).withFailureHandler(err => {
+      Swal.fire('Error', 'Gagal memuat rekap hasil: ' + (err.message || err), 'error');
+    }).getRekapVerifikasi();
+  }
+
+  function loadMasterSoal() { google.script.run.withSuccessHandler(data => { document.getElementById('soal-body').innerHTML = data.map(s => `<tr><td><span class="badge bg-info">${s[1]}</span></td><td>${s[2]}</td><td>${s[4]}</td></tr>`).join(''); }).withFailureHandler(err => { Swal.fire('Error', 'Gagal memuat master soal: ' + (err.message || err), 'error'); }).getPertanyaan(); }
+  
+  function loadMasterUser() {
+    google.script.run.withSuccessHandler(data => {
+      document.getElementById('user-body').innerHTML = data.map(u => `
+        <tr>
+          <td><b>${u[0]}</b></td>
+          <td><span class="badge bg-light text-dark">${u[2]}</span></td>
+          <td>${u[3]}</td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-danger" onclick="aksiHapusUser('${u[0]}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>`).join('');
+    }).withFailureHandler(err => {
+      Swal.fire('Error', 'Gagal memuat data user: ' + (err.message || err), 'error');
+    }).getAllUsers();
+  }
+
+  function bukaDetail(idx) {
+    const d = currentDataDetail[idx];
+    const tMandiri = parseFloat(d.totalMandiri || 0).toFixed(2);
+    const tVerif = parseFloat(d.totalVerifikasi || 0).toFixed(2);
+    const tProv = parseFloat(d.totalProvinsi || 0).toFixed(2);
+    const kat = getKategori(tProv);
+    const r = d.rincian;
+
+    // Populate header fields
+    document.getElementById('det-opd-nama').innerText = d.opd;
+    
+    const TDstyle = 'border: 1px solid black; padding: 4px;';
+    const TDcenter = TDstyle + ' text-align: center;';
+
+    let html = '';
+    let globalRowNo = 1;
+    document.getElementById('current-year-modal').innerText = new Date().getFullYear();
+
+    r.forEach((it) => {
+      let varName = (it.pertanyaan || '').replace(/^\d+\.\s*/, '').toUpperCase();
+      let scaleResp = it.skala_responden ? `<b>Tingkat ${romanize(it.skala_responden)}:</b><br/>"${it.indikator_responden || ''}"` : '-';
+      let scaleEval = it.skala_evaluator ? `<b>Tingkat ${romanize(it.skala_evaluator)}:</b><br/>"${it.indikator_evaluator || ''}"` : '-';
+      let scaleProv = it.skala_provinsi ? `<b>Tingkat ${romanize(it.skala_provinsi)}:</b><br/>"${it.indikator_provinsi || ''}"` : '-';
+      
+      let TDleftTop = 'border: 1px solid black; padding: 8px; text-align: left; vertical-align: top;';
+      let TDcenterTop = 'border: 1px solid black; padding: 8px; text-align: center; vertical-align: top;';
+
+      html += `<tr>
+        <td style="${TDcenterTop}">${globalRowNo++}</td>
+        <td style="${TDleftTop} font-size:12px; font-weight:bold;">${varName}</td>
+        <td style="${TDleftTop}">${scaleResp}</td>
+        <td style="${TDcenterTop}">${parseFloat(it.nilai_mandiri || 0).toFixed(2)}</td>
+        <td style="${TDleftTop}">${scaleEval}</td>
+        <td style="${TDcenterTop}">${parseFloat(it.nilai_verifikasi || 0).toFixed(2)}</td>
+        <td style="${TDleftTop}">${scaleProv}</td>
+        <td style="${TDcenterTop}">${parseFloat(it.nilai_provinsi || 0).toFixed(2)}</td>
+      </tr>`;
+    });
+
+    document.getElementById('det-tabel-body-full').innerHTML = html;
+    document.getElementById('det-total-mandiri').innerText = tMandiri;
+    document.getElementById('det-total-verifikasi').innerText = tVerif;
+    document.getElementById('det-total-provinsi').innerText = tProv;
+    
+    let katLabel = "Menunggu Penilaian Provinsi";
+    if (parseFloat(d.totalProvinsi) > 0) katLabel = kat.label;
+
+    document.getElementById('det-predikat-final').innerText = katLabel;
+
+    mDetail.show();
+  }
+
+  function aksiHapus(tipe, opd) {
+    Swal.fire({ 
+      title:'Konfirmasi Hapus', 
+      text:`Anda akan menghapus seluruh data ${tipe} untuk ${opd}. Tindakan ini tidak dapat dibatalkan.`, 
+      icon:'warning', 
+      showCancelButton:true, 
+      confirmButtonColor:'#d33', 
+      confirmButtonText:'Ya, Hapus!' 
+    }).then(r => {
+      if(r.isConfirmed) {
+        Swal.fire({title:'Menghapus...', didOpen:()=>Swal.showLoading()});
+        google.script.run.withSuccessHandler(() => {
+          Swal.fire('Terhapus', 'Data berhasil dihapus', 'success');
+          loadHasil();
+          loadStats();
+        }).hapusJawabanOPD(opd);
+      }
+    });
+  }
+
+  function cetakPDF() {
+    const element = document.getElementById('area-print');
+    const opdName = document.getElementById('det-opd-nama').innerText.replace(/\s+/g, '_') || 'Laporan';
+    html2pdf().set({
+      margin: 0,
+      filename: `Berita_Acara_Kematangan_${opdName}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    }).from(element).save();
+  }
+
+  async function cetakDOCX() {
+    const element = document.getElementById('area-print');
+    const opdName = document.getElementById('det-opd-nama').innerText.replace(/\s+/g, '_') || 'Laporan';
+    const filename = `Berita_Acara_Kematangan_${opdName}.doc`;
+
+    try {
+      const htmlContent = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:w="urn:schemas-microsoft-com:office:word"
+              xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+          <meta charset="UTF-8">
+          <!--[if gte mso 9]>
+          <xml>
+            <w:WordDocument>
+              <w:View>Print</w:View>
+              <w:Zoom>100</w:Zoom>
+              <w:DoNotOptimizeForBrowser/>
+            </w:WordDocument>
+          </xml>
+          <![endif]-->
+          <style>
+            @page { size: 29.7cm 21cm; margin: 2cm; mso-page-orientation: landscape; }
+            body { font-family: Arial, sans-serif; font-size: 11pt; color: black; }
+            table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+            td, th { border: 1px solid black; padding: 4px 6px; vertical-align: middle; }
+            .bold { font-weight: bold; }
+            h4, h5, h6 { margin: 2px 0; }
+          </style>
+        </head>
+        <body>${element.innerHTML}</body>
+        </html>`;
+
+      const blob = new Blob([htmlContent], { type: 'application/msword;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      Swal.fire({ icon: 'success', title: 'Berhasil!', text: `File ${filename} berhasil diunduh. Buka dengan Microsoft Word atau LibreOffice.`, timer: 3000, showConfirmButton: false });
+    } catch (err) {
+      Swal.fire('Gagal', 'Tidak dapat membuat file: ' + err.message, 'error');
+    }
+  }
+
+  function cetakXLS() {
+    const element = document.getElementById('area-print');
+    const opdName = document.getElementById('det-opd-nama').innerText.replace(/\s+/g, '_') || 'Laporan';
+    const filename = `Berita_Acara_Kematangan_${opdName}.xls`;
+
+    try {
+      // Ambil hanya elemen tabel dari area-print
+      const tables = element.querySelectorAll('table');
+      let tableHTML = '';
+      tables.forEach(t => { tableHTML += t.outerHTML; });
+
+      const xlsContent = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:x="urn:schemas-microsoft-com:office:excel"
+              xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+          <meta charset="UTF-8">
+          <!--[if gte mso 9]><xml>
+            <x:ExcelWorkbook>
+              <x:ExcelWorksheets>
+                <x:ExcelWorksheet>
+                  <x:Name>Berita Acara Kematangan PD</x:Name>
+                  <x:WorksheetOptions>
+                    <x:DisplayGridlines/>
+                    <x:Print>
+                      <x:FitToPage/>
+                      <x:PaperSizeIndex>9</x:PaperSizeIndex>
+                    </x:Print>
+                  </x:WorksheetOptions>
+                </x:ExcelWorksheet>
+              </x:ExcelWorksheets>
+            </x:ExcelWorkbook>
+          </xml><![endif]-->
+          <style>
+            body { font-family: Arial; font-size: 10pt; }
+            table { border-collapse: collapse; }
+            td, th { border: 1px solid black; padding: 4px; font-size: 9pt; }
+            .bold { font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <p style="font-weight:bold; text-align:center; text-transform:uppercase;">LAPORAN HASIL PEMBINAAN DAN PENGENDALIAN PENATAAN PERANGKAT DAERAH KABUPATEN MUARO JAMBI TAHUN ${new Date().getFullYear()}</p>
+          <p>NAMA PERANGKAT DAERAH : ${document.getElementById('det-opd-nama').innerText}</p>
+          ${tableHTML}
+        </body>
+        </html>`;
+
+      const blob = new Blob([xlsContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      Swal.fire({ icon: 'success', title: 'Berhasil!', text: `File ${filename} berhasil diunduh. Buka dengan Microsoft Excel atau LibreOffice Calc.`, timer: 3000, showConfirmButton: false });
+    } catch (err) {
+      Swal.fire('Gagal', 'Tidak dapat membuat file: ' + err.message, 'error');
+    }
+  }
+
+  function bukaModalTambahUser() {
+    document.getElementById('new-user').value = '';
+    document.getElementById('new-pass').value = '';
+    document.getElementById('new-role').value = 'Responden';
+    google.script.run.withSuccessHandler(list => {
+      let select = document.getElementById('new-opd');
+      let h = '<option value="">-- Pilih OPD --</option>';
+      list.forEach(nama => { h += `<option value="${nama}">${nama}</option>`; });
+      select.innerHTML = h;
+      modalAddUser.show();
+    }).getListOPD();
+  }
+
+  function prosesSimpanUser() {
+    const payload = {
+      username: document.getElementById('new-user').value.trim(),
+      password: document.getElementById('new-pass').value.trim(),
+      role: document.getElementById('new-role').value,
+      nama_opd: document.getElementById('new-opd').value.trim()
+    };
+    if (!payload.username || !payload.password || !payload.nama_opd) return Swal.fire('Peringatan', 'Semua data harus diisi!', 'warning');
+    Swal.fire({title: 'Menyimpan...', didOpen: () => Swal.showLoading()});
+    google.script.run.withSuccessHandler(res => {
+      Swal.fire('Berhasil', res, 'success');
+      modalAddUser.hide();
+      loadMasterUser();
+    }).withFailureHandler(err => {
+      Swal.fire('Gagal', err.message, 'error');
+    }).simpanUserBaru(payload);
+  }
+
+  function aksiHapusUser(username) {
+    if(username === sess.username) return Swal.fire('Error', 'Anda tidak bisa menghapus akun sendiri!', 'error');
+    Swal.fire({
+      title: 'Hapus User?',
+      text: `Apakah Anda yakin ingin menghapus user "${username}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Ya, Hapus!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({title: 'Menghapus...', didOpen: () => Swal.showLoading()});
+        google.script.run.withSuccessHandler(res => {
+          Swal.fire('Terhapus!', res, 'success');
+          loadMasterUser();
+        }).withFailureHandler(err => {
+          Swal.fire('Gagal', err.message, 'error');
+        }).hapusUser(username);
+      }
+    });
+  }
+
+  function cetakBeritaAcara(idx) {
+    const d = currentDataDetail[idx];
+    Swal.fire({
+      title: 'Generasi Berita Acara',
+      text: `Sedang memproses dokumen untuk ${d.opd}...`,
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    google.script.run.withSuccessHandler(res => {
+      Swal.close();
+      if (res.status === "success") {
+        const fullHtml = `
+          <html xmlns:o="urn:schemas-microsoft-com:office:office"
+                xmlns:w="urn:schemas-microsoft-com:office:word"
+                xmlns="http://www.w3.org/TR/REC-html40">
+          <head>
+            <meta charset="UTF-8">
+            <!--[if gte mso 9]>
+            <xml>
+              <w:WordDocument>
+                <w:View>Print</w:View>
+                <w:Zoom>100</w:Zoom>
+                <w:DoNotOptimizeForBrowser/>
+              </w:WordDocument>
+            </xml>
+            <![endif]-->
+            <style>
+              @page { size: 29.7cm 21cm; margin: 2cm; mso-page-orientation: landscape; }
+              @page Section1 { size: 29.7cm 21cm; margin: 2cm; mso-header-margin: .5in; mso-footer-margin: .5in; mso-paper-source: 0; }
+              div.Section1 { page: Section1; }
+              body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: black; }
+              table { width: 100%; border-collapse: collapse; font-size: 11pt; }
+              td, th { border: 1px solid black; padding: 6px; vertical-align: middle; }
+            </style>
+          </head>
+          <body>
+            <div class="Section1">
+              ${res.html}
+            </div>
+          </body>
+          </html>`;
+
+        const blob = new Blob([fullHtml], { type: 'application/msword;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = res.fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Berita Acara berhasil diunduh secara otomatis.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } else {
+        Swal.fire('Gagal', res.message, 'error');
+      }
+    }).withFailureHandler(err => {
+      Swal.close();
+      Swal.fire('Error', err.message, 'error');
+    }).generateBeritaAcara(d.opd);
+  }
+
+  // --- PENGATURAN PERIODE (EVALUATOR) ---
+
+  function toggleOpdInput() {
+    const tipe = document.getElementById('set-tipe').value;
+    const wrap = document.getElementById('set-opd-wrap');
+    wrap.classList.toggle('hidden', tipe !== 'OPD');
+  }
+
+  function loadPengaturan() {
+    // Isi dropdown OPD dari sheet Master_OPD
+    google.script.run.withSuccessHandler(opdList => {
+      const opts = opdList.map(nama => `<option value="${nama}">${nama}</option>`).join('');
+      document.getElementById('set-opd-val').innerHTML = opts || '<option>Tidak ada OPD</option>';
+    }).getListOPD();
+
+    // Muat tabel pengaturan
+    google.script.run.withSuccessHandler(rows => {
+      const now = new Date();
+      const tbody = document.getElementById('setting-body');
+      if (!rows || rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Belum ada pengaturan periode.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(r => {
+        const buka = r.tglBuka ? new Date(r.tglBuka) : null;
+        const tutup = r.tglTutup ? new Date(r.tglTutup) : null;
+        let statusBadge = '<span class="badge bg-secondary">Tidak Diketahui</span>';
+        if (buka && tutup) {
+          if (now < buka) statusBadge = '<span class="badge bg-warning text-dark">⏳ Belum Dibuka</span>';
+          else if (now > tutup) statusBadge = '<span class="badge bg-danger">🔒 Sudah Tutup</span>';
+          else statusBadge = '<span class="badge bg-success">✅ Sedang Buka</span>';
+        }
+        const fmtBuka = buka ? buka.toLocaleString('id-ID') : '-';
+        const fmtTutup = tutup ? tutup.toLocaleString('id-ID') : '-';
+        const label = r.tipe === 'GLOBAL' ? '🌐 GLOBAL (Semua OPD)' : `🏢 ${r.tipe}`;
+        return `<tr>
+          <td class="px-3 fw-bold">${label}</td>
+          <td class="text-center text-success">${fmtBuka}</td>
+          <td class="text-center text-danger">${fmtTutup}</td>
+          <td class="text-center">${statusBadge}</td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-danger" onclick="hapusPengaturan('${r.tipe}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>`;
+      }).join('');
+    }).getPengaturanPeriode();
+  }
+
+  function simpanPengaturan() {
+    const tipeEl = document.getElementById('set-tipe').value;
+    const tipe = tipeEl === 'OPD' ? document.getElementById('set-opd-val').value : 'GLOBAL';
+    const tglBuka = document.getElementById('set-buka').value;
+    const tglTutup = document.getElementById('set-tutup').value;
+
+    if (!tglBuka || !tglTutup) {
+      Swal.fire('Peringatan', 'Tanggal buka dan tutup harus diisi!', 'warning'); return;
+    }
+    if (new Date(tglTutup) <= new Date(tglBuka)) {
+      Swal.fire('Peringatan', 'Tanggal tutup harus lebih besar dari tanggal buka!', 'warning'); return;
+    }
+
+    Swal.fire({ title: 'Menyimpan...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    google.script.run
+      .withSuccessHandler(res => {
+        Swal.fire({ icon: 'success', title: 'Tersimpan!', text: res.pesan, timer: 2000, showConfirmButton: false });
+        loadPengaturan();
+      })
+      .withFailureHandler(err => Swal.fire('Gagal', err.message, 'error'))
+      .simpanPeriodePengisian({ tipe, tglBuka, tglTutup });
+  }
+
+  function hapusPengaturan(tipe) {
+    Swal.fire({
+      title: 'Konfirmasi Hapus',
+      text: `Hapus pengaturan periode untuk "${tipe}"?`,
+      icon: 'warning', showCancelButton: true,
+      confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!'
+    }).then(r => {
+      if (r.isConfirmed) {
+        google.script.run
+          .withSuccessHandler(() => { Swal.fire('Terhapus!', '', 'success'); loadPengaturan(); })
+          .withFailureHandler(err => Swal.fire('Gagal', err.message, 'error'))
+          .hapusPeriodePengisian(tipe);
+      }
+    });
+  }
+
+</script>

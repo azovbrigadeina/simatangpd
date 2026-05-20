@@ -1,0 +1,158 @@
+<!-- Modal Login -->
+<div class="modal fade" id="modL" data-bs-backdrop="static" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-5 text-center" style="background: var(--bg);">
+      <div class="mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background: var(--accent); border: 3px solid #000; box-shadow: 4px 4px 0px #000;">
+          <i class="bi bi-person-lock" style="font-size: 2.5rem;"></i>
+        </div>
+      </div>
+      <h2 class="fw-bold mb-1" id="titleL">LOGIN</h2>
+      <p class="fw-bold small mb-4">SILAHKAN MASUKKAN KREDENSIAL ANDA</p>
+      
+      <form onsubmit="event.preventDefault(); doL();">
+        <div class="mb-3 text-start">
+          <label class="form-label small fw-bold">USERNAME</label>
+          <input type="text" id="ui" class="form-control" placeholder="Username anda" required>
+        </div>
+        
+        <div class="mb-4 text-start">
+          <label class="form-label small fw-bold">PASSWORD</label>
+          <input type="password" id="pi" class="form-control" placeholder="Password anda" required>
+        </div>
+        
+        <button type="submit" class="btn btn-brut btn-brut-pink w-100 py-3">
+          MASUK KE SISTEM <i class="bi bi-arrow-right ms-2"></i>
+        </button>
+      </form>
+      <button class="btn btn-link btn-sm mt-3 text-muted text-decoration-none" onclick="window.top.location.href = 'https://bagorsetdamuarojambi.blogspot.com/'">
+        <i class="bi bi-x-circle me-1"></i> Batal & Kembali
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tambah User -->
+<div class="modal fade" id="modalAddUser" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-black text-white">
+        <h5 class="modal-title fw-bold">TAMBAH PENGGUNA BARU</h5>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form onsubmit="event.preventDefault(); prosesSimpanUser();">
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label small fw-bold">Username</label><input type="text" id="new-user" class="form-control" placeholder="Contoh: dinkes_user" required></div>
+          <div class="mb-3"><label class="form-label small fw-bold">Password</label><input type="text" id="new-pass" class="form-control" placeholder="Masukkan password" required></div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Role</label>
+            <select id="new-role" class="form-select" required><option value="Responden">Responden</option><option value="Evaluator">Evaluator</option><option value="Provinsi">Provinsi</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Nama OPD / Instansi</label>
+            <select id="new-opd" class="form-select" required><option value="">-- Memuat Daftar OPD... --</option></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-brut bg-light" data-bs-dismiss="modal">BATAL</button>
+          <button type="submit" class="btn btn-brut">SIMPAN USER</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detail Laporan -->
+<div class="modal fade" id="modalDetail" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-black text-white">
+        <h5 class="fw-bold">DETAIL LAPORAN</h5>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="background:#f8f9fa;">
+        
+        <!-- Area Cetak -->
+        <div id="area-print" style="width: 297mm; min-height: 210mm; margin: auto; background: white; padding: 20mm; box-sizing: border-box; font-family: 'Arial', sans-serif; font-size: 11px; color: black; line-height: 1.4;">
+          
+          <div style="text-align: center; margin-bottom: 25px;">
+            <p style="font-weight: bold; margin: 0; font-size: 14px; text-transform: uppercase;">
+              LAPORAN HASIL PEMBINAAN DAN PENGENDALIAN PENATAAN PERANGKAT DAERAH KABUPATEN MUARO JAMBI <br />
+              Tahun <span id="current-year-modal"></span>
+            </p>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <table style="width: 100%; border: none;">
+              <tr>
+                <td style="width: 250px; font-weight: bold;">NAMA PERANGKAT DAERAH</td>
+                <td style="width: 10px;">:</td>
+                <td id="det-opd-nama" style="text-transform: uppercase; font-weight: bold;">-</td>
+              </tr>
+              <tr>
+                <td style="font-weight: bold;">ALAMAT</td>
+                <td>:</td>
+                <td id="det-opd-alamat">-</td>
+              </tr>
+            </table>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; border: 1.5px solid black;">
+            <thead>
+              <tr style="background: #e9ecef; text-align: center; font-weight: bold;">
+                <td style="border: 1px solid black; padding: 5px; width: 30px;">NO</td>
+                <td style="border: 1px solid black; padding: 5px; width: 15%;">NAMA VARIABEL</td>
+                <td style="border: 1px solid black; padding: 5px; width: 22%;">TINGKAT<br/>(MANDIRI)</td>
+                <td style="border: 1px solid black; padding: 5px; width: 5%;">NILAI<br/>MANDIRI</td>
+                <td style="border: 1px solid black; padding: 5px; width: 22%;">TINGKAT<br/>(KABUPATEN)</td>
+                <td style="border: 1px solid black; padding: 5px; width: 5%;">NILAI<br/>KABUPATEN</td>
+                <td style="border: 1px solid black; padding: 5px; width: 22%;">TINGKAT<br/>(PROVINSI)</td>
+                <td style="border: 1px solid black; padding: 5px; width: 5%;">NILAI<br/>PROVINSI</td>
+              </tr>
+            </thead>
+            <tbody id="det-tabel-body-full">
+              <!-- Content will be injected by JavaScript -->
+            </tbody>
+            <tfoot>
+              <!-- Total -->
+              <tr style="font-weight: bold;">
+                <td colspan="3" style="border: 1px solid black; padding: 8px; text-align: right; font-size: 12px;">TOTAL NILAI</td>
+                <td id="det-total-mandiri" style="border: 1px solid black; padding: 5px; text-align: center;">-</td>
+                <td style="border: 1px solid black; padding: 5px; text-align: center; background: #f8f9fa;"></td>
+                <td id="det-total-verifikasi" style="border: 1px solid black; padding: 5px; text-align: center;">-</td>
+                <td style="border: 1px solid black; padding: 5px; text-align: center; background: #f8f9fa;"></td>
+                <td id="det-total-provinsi" style="border: 1px solid black; padding: 5px; text-align: center;">-</td>
+              </tr>
+              <!-- Final Predikat -->
+              <tr style="background: #000; color: white; font-weight: bold; font-size: 14px;">
+                <td colspan="7" style="border: 1px solid black; padding: 10px; text-align: right;">LEVEL KEMATANGAN (HASIL VERIFIKASI)</td>
+                <td id="det-predikat-final" style="border: 1px solid black; padding: 10px; text-align: center; background: #333;">-</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div style="margin-top: 40px; display: flex; justify-content: flex-end;">
+            <div style="text-align: center; width: 250px;">
+              <p style="margin-bottom: 60px;">EVALUATOR,</p>
+              <p style="font-weight: bold; text-decoration: underline;">( ............................................ )</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-brut bg-light" data-bs-dismiss="modal">TUTUP</button>
+        <button class="btn btn-brut btn-brut-green" onclick="cetakXLS()">
+          <i class="bi bi-file-earmark-excel-fill me-2"></i> XLS
+        </button>
+        <button class="btn btn-brut" onclick="cetakDOCX()">
+          <i class="bi bi-file-earmark-word-fill me-2"></i> DOCX
+        </button>
+        <button class="btn btn-brut btn-brut-pink" onclick="cetakPDF()">
+          <i class="bi bi-file-earmark-pdf-fill me-2"></i> PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,229 @@
+<div id="p-eval" class="hidden" style="display: flex; flex: 1;">
+  <div class="sidebar d-flex flex-column">
+    <h3 class="fw-bold mb-4 border-bottom border-3 border-black pb-2 text-center">ADMIN</h3>
+    <div class="nav flex-column gap-2" role="tablist">
+      <button id="menu-dashboard" class="btn btn-brut active text-start" data-bs-toggle="pill" data-bs-target="#t-stat" onclick="loadStats()"><i class="bi bi-speedometer2 me-2"></i> DASHBOARD</button>
+      <button id="menu-verif" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-verif" onclick="initV()"><i class="bi bi-clipboard-check me-2"></i> VERIFIKASI</button>
+      <button id="menu-hasil" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-hasil" onclick="loadHasil()"><i class="bi bi-file-earmark-bar-graph me-2"></i> REKAP NILAI</button>
+      <button id="menu-soal" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-soal" onclick="loadMasterSoal()"><i class="bi bi-database me-2"></i> MASTER SOAL</button>
+      <button id="menu-user" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-user" onclick="loadMasterUser()"><i class="bi bi-people me-2"></i> DATA USER</button>
+      <button id="menu-setting" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-setting" onclick="loadPengaturan()"><i class="bi bi-gear-fill me-2"></i> SETTING</button>
+    </div>
+    <div class="mt-auto"><hr class="border-2 border-black"><button class="btn btn-brut btn-brut-pink w-100" onclick="window.top.location.href = 'https://bagorsetdamuarojambi.blogspot.com/'">LOGOUT</button></div>
+  </div>
+  
+  <div class="content">
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="t-stat">
+        <h4 class="fw-bold mb-4">Dashboard Monitoring Kematangan PD</h4>
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+            <div class="brut-card text-center" id="card-mandiri" style="background: white;">
+              <h6>Level Mandiri</h6>
+              <h1 id="s-mandiri-val" class="fw-bold" style="font-size: 3rem;">0.00</h1>
+              <span id="s-mandiri-lbl" class="badge bg-secondary fs-6 mt-2">Memuat...</span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="brut-card text-center" id="card-kab" style="background: white;">
+              <h6>Level Kabupaten</h6>
+              <h1 id="s-kab-val" class="fw-bold" style="font-size: 3rem;">0.00</h1>
+              <span id="s-kab-lbl" class="badge bg-secondary fs-6 mt-2">Memuat...</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+            <div class="brut-card h-100" style="background: white;">
+              <h5 class="fw-bold mb-3 border-bottom border-black pb-2">Peringkat Level Mandiri</h5>
+              <div class="row">
+                <div class="col-6">
+                  <h6 class="fw-bold text-success"><i class="bi bi-arrow-up-circle-fill"></i> 5 Terbaik</h6>
+                  <ul id="list-top-mandiri" class="list-group list-group-flush small" style="border: 1px solid #dee2e6; border-radius: 4px;"></ul>
+                </div>
+                <div class="col-6">
+                  <h6 class="fw-bold text-danger"><i class="bi bi-arrow-down-circle-fill"></i> 5 Terendah</h6>
+                  <ul id="list-bot-mandiri" class="list-group list-group-flush small" style="border: 1px solid #dee2e6; border-radius: 4px;"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="brut-card h-100" style="background: white;">
+              <h5 class="fw-bold mb-3 border-bottom border-black pb-2">Peringkat Level Kabupaten</h5>
+              <div class="row">
+                <div class="col-6">
+                  <h6 class="fw-bold text-success"><i class="bi bi-arrow-up-circle-fill"></i> 5 Terbaik</h6>
+                  <ul id="list-top-kab" class="list-group list-group-flush small" style="border: 1px solid #dee2e6; border-radius: 4px;"></ul>
+                </div>
+                <div class="col-6">
+                  <h6 class="fw-bold text-danger"><i class="bi bi-arrow-down-circle-fill"></i> 5 Terendah</h6>
+                  <ul id="list-bot-kab" class="list-group list-group-flush small" style="border: 1px solid #dee2e6; border-radius: 4px;"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-pane fade" id="t-verif">
+        <div id="v-header-section" class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="fw-bold m-0">Verifikasi Data</h4>
+          <span id="v-summary-badge" class="badge bg-black fs-6 px-3 py-2" style="border:var(--brut-border);box-shadow:var(--brut-shadow-sm);">Memuat...</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div id="v-progress-section" class="brut-card p-3 mb-3" style="background:var(--accent);">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold small text-uppercase">Progress Verifikasi</span>
+            <span id="v-progress-text" class="fw-bold">0/0 OPD</span>
+          </div>
+          <div class="progress" style="height:22px;">
+            <div id="v-progress-bar" class="progress-bar" style="width:0%;"></div>
+          </div>
+        </div>
+
+        <!-- Search + Filter -->
+        <div id="v-search-section" class="brut-card p-3 mb-3" style="background:white;">
+          <div class="row g-2 align-items-center">
+            <div class="col-md-5">
+              <div class="input-group">
+                <span class="input-group-text bg-black text-white border-0" style="border-radius:0;"><i class="bi bi-search"></i></span>
+                <input type="text" id="v-search" class="form-control" placeholder="Cari nama OPD..." oninput="filterOPDCards()" style="border-left:0 !important;">
+              </div>
+            </div>
+            <div class="col-md-7 d-flex gap-1 flex-wrap">
+              <button class="btn btn-sm btn-brut px-3 py-1 active" data-filter="semua" onclick="setFilter(this,'semua')" style="font-size:0.75rem;">SEMUA</button>
+              <button class="btn btn-sm btn-brut px-3 py-1" data-filter="belum" onclick="setFilter(this,'belum')" style="font-size:0.75rem;background:#ff6b6b;">⏳ BELUM</button>
+              <button class="btn btn-sm btn-brut px-3 py-1" data-filter="sebagian" onclick="setFilter(this,'sebagian')" style="font-size:0.75rem;background:#ffd43b;">⚠️ SEBAGIAN</button>
+              <button class="btn btn-sm btn-brut px-3 py-1" data-filter="selesai" onclick="setFilter(this,'selesai')" style="font-size:0.75rem;background:var(--green);">✅ SELESAI</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPD Card Grid -->
+        <div id="v-card-grid" class="opd-grid mb-4"></div>
+
+        <!-- Detail Verifikasi (tetap hidden sampai dipilih) -->
+        <div id="v-det" class="hidden">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <button class="btn btn-brut btn-sm" onclick="kembaliKeGrid()"><i class="bi bi-arrow-left me-1"></i> KEMBALI KE DAFTAR</button>
+          </div>
+          <div id="v-list"></div>
+          <div class="text-end mt-4">
+            <button class="btn btn-brut btn-brut-green px-5" onclick="kirimV()">💾 SIMPAN VERIFIKASI</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-pane fade" id="t-hasil">
+        <h4 class="fw-bold mb-4">Rekapitulasi Hasil</h4>
+        <div class="brut-card p-0 overflow-hidden">
+          <table class="table table-hover mb-0">
+            <thead class="bg-black text-white text-center">
+              <tr>
+                <th class="text-start px-3">Nama OPD</th>
+                <th>Total Nilai (Mandiri)</th>
+                <th>Total Nilai (Kabupaten)</th>
+                <th>Total Nilai (Provinsi)</th>
+                <th>Level Kematangan</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="h-body"></tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="tab-pane fade" id="t-soal">
+        <h4 class="fw-bold mb-4">Master Soal</h4>
+        <div class="brut-card p-3">
+          <table class="table small">
+            <thead><tr><th>Aspek</th><th>Pertanyaan</th><th>Bobot</th></tr></thead>
+            <tbody id="soal-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="t-user">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="fw-bold m-0">Daftar Pengguna</h4>
+          <button class="btn btn-brut btn-brut-pink" onclick="bukaModalTambahUser()">
+            <i class="bi bi-person-plus-fill me-2"></i> TAMBAH USER
+          </button>
+        </div>
+        <div class="brut-card p-3">
+          <table class="table table-hover">
+            <thead><tr><th>Username</th><th>Role</th><th>Nama OPD</th><th class="text-end">Aksi</th></tr></thead>
+            <tbody id="user-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="t-setting">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="fw-bold m-0"><i class="bi bi-gear-fill me-2"></i> Pengaturan Periode</h4>
+        </div>
+
+        <!-- Form Tambah/Edit Periode -->
+        <div class="brut-card mb-4 p-0">
+          <div class="p-3 bg-black text-white fw-bold">
+            <i class="bi bi-plus-circle me-1"></i> TAMBAH / UPDATE PERIODE
+          </div>
+          <div class="p-4">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label fw-bold small">Berlaku Untuk</label>
+                <select id="set-tipe" class="form-select border-primary" onchange="toggleOpdInput()">
+                  <option value="GLOBAL">🌐 GLOBAL (Semua OPD)</option>
+                  <option value="OPD">🏢 Per-OPD Tertentu</option>
+                </select>
+              </div>
+              <div class="col-md-8 hidden" id="set-opd-wrap">
+                <label class="form-label fw-bold small">Pilih OPD</label>
+                <select id="set-opd-val" class="form-select border-primary"></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold small"><i class="bi bi-calendar-check text-success me-1"></i>Tanggal & Jam Buka</label>
+                <input type="datetime-local" id="set-buka" class="form-control border-success">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold small"><i class="bi bi-calendar-x text-danger me-1"></i>Tanggal & Jam Tutup</label>
+                <input type="datetime-local" id="set-tutup" class="form-control border-danger">
+              </div>
+              <div class="col-12 text-end">
+                <button class="btn btn-brut px-5" onclick="simpanPengaturan()">
+                  <i class="bi bi-save2 me-1"></i> SIMPAN PENGATURAN
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabel Pengaturan Aktif -->
+        <div class="brut-card p-0">
+          <div class="p-3 bg-light fw-bold border-bottom border-2 border-black">
+            <i class="bi bi-list-check me-1"></i> DAFTAR PERIODE AKTIF
+          </div>
+          <div>
+            <table class="table table-hover mb-0 small">
+              <thead class="table-light text-center">
+                <tr>
+                  <th class="text-start px-3">Berlaku Untuk</th>
+                  <th>Tanggal Buka</th>
+                  <th>Tanggal Tutup</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="setting-body">
+                <tr><td colspan="5" class="text-center text-muted py-3">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
