@@ -3,12 +3,44 @@
  */
 
 function simpanVerifikasi(payload) {
+  if (SETTINGS.USE_FIREBASE) {
+    const ts = new Date().toISOString();
+    const opd = Firebase.escapeKey(payload.opd);
+    const isProv = payload.role === 'Provinsi';
+    
+    const currentVerif = Firebase.get(`verifikasi/${opd}`) || {};
+    
+    payload.items.forEach(item => {
+      const idSoal = Firebase.escapeKey(item.id_soal.toString().trim());
+      const existing = currentVerif[idSoal] || {};
+      
+      const evalScore = isProv ? (existing.skala_evaluator || "") : (item.skala_evaluator !== undefined ? item.skala_evaluator : "");
+      const evalCat = isProv ? (existing.catatan_evaluator || "") : (item.catatan || "");
+      const provScore = isProv ? (item.skala_provinsi !== undefined ? item.skala_provinsi : "") : (existing.skala_provinsi || "");
+      const provCat = isProv ? (item.catatan_provinsi || "") : (existing.catatan_provinsi || "");
+      
+      currentVerif[idSoal] = {
+        timestamp: ts,
+        skala_responden: item.skala_responden !== undefined ? Number(item.skala_responden) : (existing.skala_responden || 0),
+        skala_evaluator: evalScore !== "" ? Number(evalScore) : "",
+        catatan_evaluator: evalCat,
+        skala_provinsi: provScore !== "" ? Number(provScore) : "",
+        catatan_provinsi: provCat
+      };
+    });
+    
+    Firebase.put(`verifikasi/${opd}`, currentVerif);
+    try {
+      CacheService.getScriptCache().remove("dashboard_stats");
+    } catch(e) {}
+    return "Sukses";
+  }
+
+  // Fallback ke Google Sheets
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const ts = new Date();
   
-  // 1. Batch Update Verifikasi
   const sheetV = ss.getSheetByName("Verifikasi");
-  // Pastikan header ada hingga kolom 8
   if (sheetV.getLastColumn() < 8) {
     sheetV.getRange(1, 1, 1, 8).setValues([["Timestamp", "OPD", "ID_Variabel", "Skala_Responden", "Skala_Evaluator", "Catatan_Evaluator", "Skala_Provinsi", "Catatan_Provinsi"]]);
   }
@@ -44,7 +76,6 @@ function simpanVerifikasi(payload) {
     }
   });
   
-  // Overwrite range langsung tanpa clearContents (hemat 1 panggilan I/O)
   const allData = [headerV, ...rowsV];
   sheetV.getRange(1, 1, allData.length, headerV.length).setValues(allData);
 
@@ -52,6 +83,16 @@ function simpanVerifikasi(payload) {
 }
 
 function getStats() {
+  if (SETTINGS.USE_FIREBASE) {
+    const cache = CacheService.getScriptCache();
+    const cached = cache.get("dashboard_stats");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {}
+    }
+  }
+
   const rekap = getRekapVerifikasi();
   
   let sumMandiri = 0;
@@ -73,7 +114,6 @@ function getStats() {
   listKabupaten.sort((a, b) => b.nilai - a.nilai);
   
   const top5Mandiri = listMandiri.slice(0, 5);
-  // Copy and reverse for lowest
   const bottom5Mandiri = [...listMandiri].reverse().slice(0, 5);
   
   const top5Kab = listKabupaten.slice(0, 5);
@@ -82,7 +122,7 @@ function getStats() {
   const avgMandiri = sumMandiri / 42;
   const avgProvinsi = sumProvinsi / 42;
 
-  return { 
+  const result = { 
     avgMandiri: avgMandiri, 
     avgProvinsi: avgProvinsi,
     top5Mandiri: top5Mandiri,
@@ -90,9 +130,48 @@ function getStats() {
     top5Kab: top5Kab,
     bottom5Kab: bottom5Kab
   };
+
+  if (SETTINGS.USE_FIREBASE) {
+    const cache = CacheService.getScriptCache();
+    try {
+      cache.put("dashboard_stats", JSON.stringify(result), 300); // cache 5 menit
+    } catch(e) {}
+  }
+
+  return result;
 }
 
 function getOPDSudahKirim() {
+  if (SETTINGS.USE_FIREBASE) {
+    const jawabanAll = Firebase.get("jawaban") || {};
+    const verifikasiAll = Firebase.get("verifikasi") || {};
+    
+    const opdMap = {};
+    
+    Object.entries(jawabanAll).forEach(([opd, dataOPD]) => {
+      const rawOPD = Firebase.unescapeKey(opd);
+      if (!opdMap[rawOPD]) opdMap[rawOPD] = { totalVar: 0, verifKab: 0, verifProv: 0 };
+      opdMap[rawOPD].totalVar = Object.keys(dataOPD || {}).length;
+    });
+    
+    Object.entries(verifikasiAll).forEach(([opd, dataOPD]) => {
+      const rawOPD = Firebase.unescapeKey(opd);
+      if (!opdMap[rawOPD]) return;
+      Object.values(dataOPD || {}).forEach(r => {
+        if (r.skala_evaluator !== "" && r.skala_evaluator !== null && r.skala_evaluator !== undefined) opdMap[rawOPD].verifKab++;
+        if (r.skala_provinsi !== "" && r.skala_provinsi !== null && r.skala_provinsi !== undefined) opdMap[rawOPD].verifProv++;
+      });
+    });
+    
+    return Object.entries(opdMap).map(([opd, info]) => ({
+      opd: opd,
+      totalVar: info.totalVar,
+      verifKab: info.verifKab,
+      verifProv: info.verifProv
+    }));
+  }
+
+  // Fallback ke Google Sheets
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetJ = ss.getSheetByName("Jawaban");
   if (sheetJ.getLastRow() < 2) return [];
@@ -101,7 +180,6 @@ function getOPDSudahKirim() {
   const sheetV = ss.getSheetByName("Verifikasi");
   const dataV = (sheetV && sheetV.getLastRow() > 1) ? sheetV.getDataRange().getValues().slice(1) : [];
 
-  // Hitung jumlah variabel per OPD dari Jawaban
   const opdMap = {};
   dataJ.forEach(r => {
     const opd = r[1];
@@ -109,7 +187,6 @@ function getOPDSudahKirim() {
     opdMap[opd].totalVar++;
   });
 
-  // Hitung variabel yang sudah diverifikasi per OPD
   dataV.forEach(r => {
     const opd = r[1];
     if (!opdMap[opd]) return;
@@ -126,13 +203,42 @@ function getOPDSudahKirim() {
 }
 
 function getJawabanByOPD(namaOPD) {
+  if (SETTINGS.USE_FIREBASE) {
+    const pert = Firebase.getCachedMasterPertanyaan();
+    const escapedOPD = Firebase.escapeKey(namaOPD);
+    const jawabanOPD = Firebase.get(`jawaban/${escapedOPD}`) || {};
+    const verifOPD = Firebase.get(`verifikasi/${escapedOPD}`) || {};
+    
+    const items = Object.entries(jawabanOPD).map(([idSoal, j]) => {
+      const level = j.level;
+      const key = `${idSoal}_${level}`;
+      const detail = pert[key];
+      const verif = verifOPD[idSoal];
+      const rawIdSoal = Firebase.unescapeKey(idSoal);
+      
+      return {
+        id_soal: rawIdSoal,
+        pertanyaan: detail ? detail.pertanyaan : "Variabel Tidak Ditemukan",
+        indikator: detail ? detail.indikator : "-",
+        skala_responden: level,
+        link: j.link || "",
+        skala_evaluator: verif ? (verif.skala_evaluator !== undefined ? verif.skala_evaluator : "") : "",
+        catatan: verif ? (verif.catatan_evaluator || "") : "",
+        skala_provinsi: verif ? (verif.skala_provinsi !== undefined ? verif.skala_provinsi : "") : "",
+        catatan_provinsi: verif ? (verif.catatan_provinsi || "") : ""
+      };
+    });
+    
+    return { items: items };
+  }
+
+  // Fallback ke Google Sheets
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const dj = ss.getSheetByName("Jawaban").getDataRange().getValues().slice(1);
   const ds = ss.getSheetByName("Master_Pertanyaan").getDataRange().getValues().slice(1);
   const sheetVerif = ss.getSheetByName("Verifikasi");
   const dv = (sheetVerif && sheetVerif.getLastRow() > 1) ? sheetVerif.getDataRange().getValues().slice(1) : [];
 
-  // Pre-build Map untuk lookup O(1)
   const masterMap = new Map();
   ds.forEach(s => masterMap.set(s[1].toString() + "_" + s[3].toString(), s));
 
@@ -159,11 +265,62 @@ function getJawabanByOPD(namaOPD) {
 }
 
 function getRekapVerifikasi() {
+  if (SETTINGS.USE_FIREBASE) {
+    const pert = Firebase.getCachedMasterPertanyaan();
+    const verifAll = Firebase.get("verifikasi") || {};
+    
+    const rekap = {};
+    
+    Object.entries(verifAll).forEach(([opd, dataOPD]) => {
+      const rawOPD = Firebase.unescapeKey(opd);
+      if (!rekap[rawOPD]) rekap[rawOPD] = { opd: rawOPD, rincian: [], totalMandiri: 0, totalVerifikasi: 0, totalProvinsi: 0 };
+      
+      Object.entries(dataOPD || {}).forEach(([idSoal, r]) => {
+        const skalaResp = Number(r.skala_responden || 0);
+        const skalaEval = r.skala_evaluator !== "" ? Number(r.skala_evaluator) : 0;
+        const skalaProv = r.skala_provinsi !== "" ? Number(r.skala_provinsi) : 0;
+        
+        const detailResp = pert[`${idSoal}_${skalaResp}`];
+        const detailEval = pert[`${idSoal}_${skalaEval}`];
+        const detailProv = pert[`${idSoal}_${skalaProv}`];
+        
+        const bobotMandiri = detailResp ? Number(detailResp.bobot || 0) : 0;
+        const bobotVerif = detailEval ? Number(detailEval.bobot || 0) : 0;
+        const bobotProv = detailProv ? Number(detailProv.bobot || 0) : 0;
+        
+        const namaVar = detailResp ? detailResp.pertanyaan : (detailEval ? detailEval.pertanyaan : "Variabel Tidak Ditemukan");
+        const rawIdSoal = Firebase.unescapeKey(idSoal);
+        
+        rekap[rawOPD].rincian.push({
+          id_soal: rawIdSoal,
+          pertanyaan: namaVar,
+          skala_responden: skalaResp,
+          indikator_responden: detailResp ? detailResp.indikator : "",
+          nilai_mandiri: bobotMandiri,
+          skala_evaluator: skalaEval || "",
+          indikator_evaluator: detailEval ? detailEval.indikator : "",
+          nilai_verifikasi: bobotVerif,
+          catatan: r.catatan_evaluator || "",
+          skala_provinsi: skalaProv || "",
+          indikator_provinsi: detailProv ? detailProv.indikator : "",
+          nilai_provinsi: bobotProv,
+          catatan_provinsi: r.catatan_provinsi || ""
+        });
+        
+        rekap[rawOPD].totalMandiri += bobotMandiri;
+        rekap[rawOPD].totalVerifikasi += bobotVerif;
+        rekap[rawOPD].totalProvinsi += bobotProv;
+      });
+    });
+    
+    return Object.values(rekap);
+  }
+
+  // Fallback ke Google Sheets
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const dataV = ss.getSheetByName("Verifikasi").getDataRange().getValues().slice(1);
   const dataS = ss.getSheetByName("Master_Pertanyaan").getDataRange().getValues().slice(1);
   
-  // Pre-build Map untuk lookup O(1) — key: "idSoal_level"
   const masterMap = new Map();
   dataS.forEach(s => masterMap.set(s[1].toString() + "_" + Number(s[3]), s));
 
@@ -175,7 +332,6 @@ function getRekapVerifikasi() {
     const skalaEval = Number(r[4] || 0);
     const skalaProv = Number(r[6] || 0);
 
-    // Lookup O(1) via Map
     const detailResp = masterMap.get(idSoal + "_" + skalaResp);
     const detailEval = masterMap.get(idSoal + "_" + skalaEval);
     const detailProv = masterMap.get(idSoal + "_" + skalaProv);
@@ -213,6 +369,17 @@ function getRekapVerifikasi() {
 }
 
 function hapusJawabanOPD(namaOPD) {
+  if (SETTINGS.USE_FIREBASE) {
+    const opd = Firebase.escapeKey(namaOPD.toString().trim());
+    Firebase.remove(`jawaban/${opd}`);
+    Firebase.remove(`verifikasi/${opd}`);
+    try {
+      CacheService.getScriptCache().remove("dashboard_stats");
+    } catch(e) {}
+    return "Sukses";
+  }
+
+  // Fallback ke Sheets
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   ["Jawaban", "Verifikasi"].forEach(shName => {
     let sh = ss.getSheetByName(shName);
@@ -234,6 +401,12 @@ function hapusJawabanOPD(namaOPD) {
 }
 
 function getListOPD() {
+  if (SETTINGS.USE_FIREBASE) {
+    const opdList = Firebase.getCachedMasterOPD();
+    return opdList || [];
+  }
+
+  // Fallback ke Sheets
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName("Master_OPD");
   if (!sheet) return [];
@@ -254,17 +427,31 @@ function generateBeritaAcara(namaOPD) {
     if (!data) throw new Error("Data rekap untuk OPD ini tidak ditemukan.");
     
     // 2. Ambil Data Catatan Komponen
-    const ckSheet = ss.getSheetByName("Catatan_Komponen");
-    const ds_ck = (ckSheet && ckSheet.getLastRow() > 1) ? ckSheet.getDataRange().getValues().slice(1) : [];
-    const ckRow = ds_ck.find(s => s[1].toString().trim() === namaOPD.toString().trim());
+    let ckRowData = null;
+    if (SETTINGS.USE_FIREBASE) {
+      const escapedOPD = Firebase.escapeKey(namaOPD);
+      ckRowData = Firebase.get(`catatan_komponen/${escapedOPD}`);
+    } else {
+      const ckSheet = ss.getSheetByName("Catatan_Komponen");
+      const ds_ck = (ckSheet && ckSheet.getLastRow() > 1) ? ckSheet.getDataRange().getValues().slice(1) : [];
+      const ckRow = ds_ck.find(s => s[1].toString().trim() === namaOPD.toString().trim());
+      if (ckRow) {
+        ckRowData = {
+          pt_p: ckRow[2], pt_r: ckRow[3],
+          ai_p: ckRow[4], ai_r: ckRow[5],
+          pm_p: ckRow[6], pm_r: ckRow[7],
+          ep_p: ckRow[8], ep_r: ckRow[9]
+        };
+      }
+    }
     
     const getVal = (val) => (val !== undefined && val !== null && val.toString().trim() !== "") ? val.toString().trim() : "-";
     
-    const ck = ckRow ? {
-      pt_p: getVal(ckRow[2]), pt_r: getVal(ckRow[3]),
-      ai_p: getVal(ckRow[4]), ai_r: getVal(ckRow[5]),
-      pm_p: getVal(ckRow[6]), pm_r: getVal(ckRow[7]),
-      ep_p: getVal(ckRow[8]), ep_r: getVal(ckRow[9])
+    const ck = ckRowData ? {
+      pt_p: getVal(ckRowData.pt_p), pt_r: getVal(ckRowData.pt_r),
+      ai_p: getVal(ckRowData.ai_p), ai_r: getVal(ckRowData.ai_r),
+      pm_p: getVal(ckRowData.pm_p), pm_r: getVal(ckRowData.pm_r),
+      ep_p: getVal(ckRowData.ep_p), ep_r: getVal(ckRowData.ep_r)
     } : { pt_p:'-', pt_r:'-', ai_p:'-', ai_r:'-', pm_p:'-', pm_r:'-', ep_p:'-', ep_r:'-' };
 
     // 3. Construct HTML
@@ -290,7 +477,6 @@ function generateBeritaAcara(namaOPD) {
     // Ambil logo sebagai Base64 agar MS Word tidak memblokir gambar eksternal
     let logoSrc = "https://upload.wikimedia.org/wikipedia/commons/4/47/Lambang_Kabupaten_Muaro_Jambi.png";
     try {
-      // Menggunakan User-Agent agar tidak diblokir oleh Wikimedia
       const imgFetch = UrlFetchApp.fetch(logoSrc, {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
       });
@@ -428,6 +614,23 @@ function generateBeritaAcara(namaOPD) {
  * @param {{ tipe: 'GLOBAL'|string, tglBuka: string, tglTutup: string }} payload
  */
 function simpanPeriodePengisian(payload) {
+  if (SETTINGS.USE_FIREBASE) {
+    const rawTipe = payload.tipe.trim().toUpperCase() === "GLOBAL" ? "GLOBAL" : payload.tipe.trim();
+    const tipe = Firebase.escapeKey(rawTipe);
+    const tglBuka = new Date(payload.tglBuka).toISOString();
+    const tglTutup = new Date(payload.tglTutup).toISOString();
+    
+    if (new Date(tglTutup) <= new Date(tglBuka)) throw new Error("Tanggal tutup harus lebih besar dari tanggal buka.");
+    
+    Firebase.put(`pengaturan/${tipe}`, {
+      scope: rawTipe,
+      tgl_buka: tglBuka,
+      tgl_tutup: tglTutup
+    });
+    
+    return { status: "success", pesan: `Pengaturan periode untuk "${rawTipe}" berhasil disimpan.` };
+  }
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName("Pengaturan");
 
@@ -463,6 +666,24 @@ function simpanPeriodePengisian(payload) {
  * Ambil semua pengaturan periode yang ada di sheet Pengaturan.
  */
 function getPengaturanPeriode() {
+  if (SETTINGS.USE_FIREBASE) {
+    const peng = Firebase.get("pengaturan") || {};
+    const fmt = (d) => {
+      if (!d || d === "") return "";
+      try {
+        return Utilities.formatDate(new Date(d), "GMT+7", "yyyy-MM-dd'T'HH:mm");
+      } catch(e) { return ""; }
+    };
+    
+    return Object.values(peng)
+      .filter(r => r.scope !== "")
+      .map(r => ({
+        tipe: r.scope.toString().trim(),
+        tglBuka: fmt(r.tgl_buka),
+        tglTutup: fmt(r.tgl_tutup)
+      }));
+  }
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName("Pengaturan");
   if (!sheet || sheet.getLastRow() < 2) return [];
@@ -487,6 +708,16 @@ function getPengaturanPeriode() {
  * Hapus satu baris pengaturan periode berdasarkan tipe/nama OPD.
  */
 function hapusPeriodePengisian(tipe) {
+  if (SETTINGS.USE_FIREBASE) {
+    const t = Firebase.escapeKey(tipe.toString().trim().toUpperCase());
+    const existing = Firebase.get(`pengaturan/${t}`);
+    if (!existing) {
+      return { status: "notfound" };
+    }
+    Firebase.remove(`pengaturan/${t}`);
+    return { status: "success" };
+  }
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName("Pengaturan");
   if (!sheet || sheet.getLastRow() < 2) return;
@@ -500,4 +731,3 @@ function hapusPeriodePengisian(tipe) {
   }
   return { status: "notfound" };
 }
-
