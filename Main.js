@@ -10,9 +10,26 @@ function doGet() {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
+
 /**
  * Helper function to include HTML files in the main template
  */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
+
+/**
+ * Membuat menu kustom di Google Sheets saat dokumen dibuka.
+ */
+function onOpen() {
+  try {
+    const ui = SpreadsheetApp.getUi();
+    ui.createMenu('[ Database Sync ]')
+      .addItem('Push: Sync Sheets ke Firebase', 'syncSheetsToFirebaseInteractive')
+      .addItem('Pull: Tarik Data Firebase ke Sheets', 'pullFirebaseToSheetsInteractive')
+      .addToUi();
+  } catch (e) {
+    Logger.log("Bukan dijalankan dari konteks Spreadsheet: " + e.message);
+  }
+}
+
