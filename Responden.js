@@ -3,26 +3,37 @@
  */
 
 function getPertanyaan() {
+  let list = [];
   if (SETTINGS.USE_FIREBASE) {
     const pert = Firebase.getCachedMasterPertanyaan();
-    if (!pert) return [];
-    return Object.values(pert).map(p => [
-      p.no || "",
-      p.id_soal || "",
-      p.pertanyaan || "",
-      p.level || 0,
-      p.indikator || "",
-      p.kolom5 || "",
-      p.kolom6 || "",
-      p.bobot || 0
-    ]);
+    if (pert) {
+      list = Object.values(pert).map(p => [
+        p.no || "",
+        p.id_soal || "",
+        p.pertanyaan || "",
+        p.level || 0,
+        p.indikator || "",
+        p.kolom5 || "",
+        p.kolom6 || "",
+        p.bobot || 0
+      ]);
+    }
+  } else {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Master_Pertanyaan");
+    const lastRow = sheet.getLastRow();
+    if (lastRow >= 2) {
+      list = sheet.getRange(2, 1, lastRow - 1, 8).getValues();
+    }
   }
 
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Master_Pertanyaan");
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return [];
-  // Hanya ambil kolom A-H (1-8) agar lebih ringan
-  return sheet.getRange(2, 1, lastRow - 1, 8).getValues();
+  // Urutkan berdasarkan id_soal (indeks 1) secara natural, lalu level (indeks 3)
+  return list.sort((a, b) => {
+    const idA = String(a[1] || "");
+    const idB = String(b[1] || "");
+    const cmp = idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
+    if (cmp !== 0) return cmp;
+    return (Number(a[3]) || 0) - (Number(b[3]) || 0);
+  });
 }
 
 function simpanSemuaJawaban(payload) {

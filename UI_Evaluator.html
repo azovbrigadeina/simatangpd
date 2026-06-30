@@ -137,12 +137,30 @@
       </div>
       
       <div class="tab-pane fade" id="t-soal">
-        <h4 class="fw-bold mb-4">Master Soal</h4>
-        <div class="brut-card p-3">
-          <table class="table small">
-            <thead><tr><th>Aspek</th><th>Pertanyaan</th><th>Bobot</th></tr></thead>
-            <tbody id="soal-body"></tbody>
-          </table>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="fw-bold m-0"><i class="bi bi-card-checklist me-2"></i> Master Soal & Pengecualian</h4>
+        </div>
+
+        <div class="brut-card p-0">
+          <div class="p-3 bg-light fw-bold border-bottom border-2 border-black">
+            <i class="bi bi-list-stars me-1"></i> DAFTAR MASTER SOAL
+          </div>
+          <div class="p-3">
+            <p class="small text-muted mb-3">Tentukan apakah link bukti dukung <strong>wajib diisi</strong> oleh responden untuk masing-masing tingkat kematangan soal. Hilangkan centang untuk mengecualikan:</p>
+            <table class="table small table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Aspek</th>
+                  <th>Pertanyaan</th>
+                  <th class="text-center">Tingkat</th>
+                  <th>Indikator</th>
+                  <th class="text-center">Bobot</th>
+                  <th class="text-center" style="width: 120px;">Wajib Bukti</th>
+                </tr>
+              </thead>
+              <tbody id="soal-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
       <div class="tab-pane fade" id="t-user">

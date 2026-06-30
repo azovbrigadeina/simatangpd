@@ -229,6 +229,11 @@ function getJawabanByOPD(namaOPD) {
       };
     });
     
+    // Urutkan secara natural berdasarkan id_soal
+    items.sort((a, b) => {
+      return String(a.id_soal).localeCompare(String(b.id_soal), undefined, { numeric: true, sensitivity: 'base' });
+    });
+    
     return { items: items };
   }
 
@@ -245,23 +250,28 @@ function getJawabanByOPD(namaOPD) {
   const verifMap = new Map();
   dv.forEach(v => verifMap.set(v[1] + "_" + v[2].toString(), v));
 
-  return {
-    items: dj.filter(r => r[1] === namaOPD).map(j => {
-      const detail = masterMap.get(j[2].toString() + "_" + j[3].toString());
-      const verif = verifMap.get(namaOPD + "_" + j[2].toString());
-      return {
-        id_soal: j[2], 
-        pertanyaan: detail ? detail[2] : "Variabel Tidak Ditemukan", 
-        indikator: detail ? detail[4] : "-",
-        skala_responden: j[3], 
-        link: j[4],
-        skala_evaluator: verif ? verif[4] : "", 
-        catatan: verif ? verif[5] : "",
-        skala_provinsi: verif ? (verif[6] || "") : "",
-        catatan_provinsi: verif ? (verif[7] || "") : ""
-      };
-    })
-  };
+  const items = dj.filter(r => r[1] === namaOPD).map(j => {
+    const detail = masterMap.get(j[2].toString() + "_" + j[3].toString());
+    const verif = verifMap.get(namaOPD + "_" + j[2].toString());
+    return {
+      id_soal: j[2], 
+      pertanyaan: detail ? detail[2] : "Variabel Tidak Ditemukan", 
+      indikator: detail ? detail[4] : "-",
+      skala_responden: j[3], 
+      link: j[4],
+      skala_evaluator: verif ? verif[4] : "", 
+      catatan: verif ? verif[5] : "",
+      skala_provinsi: verif ? (verif[6] || "") : "",
+      catatan_provinsi: verif ? (verif[7] || "") : ""
+    };
+  });
+
+  // Urutkan secara natural berdasarkan id_soal
+  items.sort((a, b) => {
+    return String(a.id_soal).localeCompare(String(b.id_soal), undefined, { numeric: true, sensitivity: 'base' });
+  });
+
+  return { items: items };
 }
 
 function getRekapVerifikasi() {
@@ -313,7 +323,15 @@ function getRekapVerifikasi() {
       });
     });
     
-    return Object.values(rekap);
+    const result = Object.values(rekap);
+    result.forEach(item => {
+      if (item.rincian) {
+        item.rincian.sort((a, b) => {
+          return String(a.id_soal).localeCompare(String(b.id_soal), undefined, { numeric: true, sensitivity: 'base' });
+        });
+      }
+    });
+    return result;
   }
 
   // Fallback ke Google Sheets
@@ -365,7 +383,15 @@ function getRekapVerifikasi() {
     rekap[opd].totalProvinsi += bobotProv;
   });
 
-  return Object.values(rekap);
+  const result = Object.values(rekap);
+  result.forEach(item => {
+    if (item.rincian) {
+      item.rincian.sort((a, b) => {
+        return String(a.id_soal).localeCompare(String(b.id_soal), undefined, { numeric: true, sensitivity: 'base' });
+      });
+    }
+  });
+  return result;
 }
 
 function hapusJawabanOPD(namaOPD) {
@@ -731,3 +757,38 @@ function hapusPeriodePengisian(tipe) {
   }
   return { status: "notfound" };
 }
+
+/**
+ * Ambil daftar key (idSoal_level) yang dikecualikan dari kewajiban link bukti.
+ * @returns {string[]}
+ */
+function getExemptedKeys() {
+  if (SETTINGS.USE_FIREBASE) {
+    const list = Firebase.get("pengaturan/exempted_keys");
+    return Array.isArray(list) ? list.map(String) : [];
+  }
+  const props = PropertiesService.getScriptProperties();
+  const val = props.getProperty("EXEMPTED_KEYS");
+  return val ? JSON.parse(val).map(String) : [];
+}
+
+/**
+ * Simpan daftar key yang dikecualikan ke Firebase atau Script Properties.
+ * @param {string[]} keysList
+ */
+function simpanExemptedKeys(keysList) {
+  if (!Array.isArray(keysList)) {
+    throw new Error("Format data keys harus berupa Array.");
+  }
+  const cleanList = keysList.map(String).map(s => s.trim()).filter(s => s !== "");
+  
+  if (SETTINGS.USE_FIREBASE) {
+    Firebase.put("pengaturan/exempted_keys", cleanList);
+    return { status: "success", pesan: "Pengaturan pengecualian berhasil disimpan." };
+  }
+  
+  const props = PropertiesService.getScriptProperties();
+  props.setProperty("EXEMPTED_KEYS", JSON.stringify(cleanList));
+  return { status: "success", pesan: "Pengaturan pengecualian berhasil disimpan." };
+}
+

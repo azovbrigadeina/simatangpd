@@ -104,27 +104,41 @@
               return;
             }
 
-            const grouped = {};
-            const keys = [];
-            rawData.forEach(r => {
-              const varId = r[1];
-              if(!varId) return;
-              if(!grouped[varId]) {
-                grouped[varId] = { id: varId, nama: r[2] || "Variabel Tanpa Nama", levels: {} };
-                keys.push(varId);
-              }
-              grouped[varId].levels[r[3]] = { indicator: r[4] || "-", explanation: r[5] || "-", evidenceReq: r[6] || "-" };
-            });
-            
-            grp = grouped;
-            cats = keys;
-            totQ = keys.length;
-            
-            if(totQ === 0) {
-              document.getElementById('f-cont').innerHTML = `<div class="brut-card text-center py-5">Format data spreadsheet tidak dikenali. Pastikan ID_Variabel (Kolom B) terisi.</div>`;
-            } else {
-              showS(0);
-            }
+            google.script.run
+              .withSuccessHandler(exemptedKeys => {
+                window.exemptedKeysList = exemptedKeys || [];
+                
+                const grouped = {};
+                const keys = [];
+                rawData.forEach(r => {
+                  const varId = r[1];
+                  if(!varId) return;
+                  if(!grouped[varId]) {
+                    grouped[varId] = { id: varId, nama: r[2] || "Variabel Tanpa Nama", levels: {} };
+                    keys.push(varId);
+                  }
+                  grouped[varId].levels[r[3]] = { 
+                    indicator: r[4] || "-", 
+                    explanation: r[5] || "-", 
+                    evidenceReq: r[6] || "-",
+                    bobot: Number(r[7] || 0)
+                  };
+                });
+                
+                grp = grouped;
+                cats = keys;
+                totQ = keys.length;
+                
+                if(totQ === 0) {
+                  document.getElementById('f-cont').innerHTML = `<div class="brut-card text-center py-5">Format data spreadsheet tidak dikenali. Pastikan ID_Variabel (Kolom B) terisi.</div>`;
+                } else {
+                  showS(0);
+                }
+              })
+              .withFailureHandler(err => {
+                document.getElementById('f-cont').innerHTML = `<div class="brut-card bg-white text-danger border-danger"><b>GAGAL MUAT PENGECUALIAN:</b> ${err.message}</div>`;
+              })
+              .getExemptedKeys();
           }).getPertanyaan();
       }).cekStatusPeriode(namaOPD);
   }
@@ -171,7 +185,7 @@
     </div>
     
     <div class="brut-card bg-white">
-      <label class="fw-bold mb-2">LINK GOOGLE DRIVE (BUKTI DUKUNG):</label>
+      <label class="fw-bold mb-2" id="link-label">LINK GOOGLE DRIVE (BUKTI DUKUNG):</label>
       <input type="url" class="form-control" id="inp-link" 
              placeholder="https://drive.google.com/..." 
              value="${ans[varId].link}" 
@@ -184,6 +198,9 @@
     </div>`;
 
     cont.innerHTML = h;
+    if (ans[varId].level) {
+      updateLinkRequirement(varId, ans[varId].level);
+    }
     upP(); 
     window.scrollTo(0,0);
   }
@@ -201,6 +218,7 @@
         else check.classList.add('hidden');
       }
     }
+    updateLinkRequirement(varId, lvl);
     upP();
   }
 
@@ -211,6 +229,46 @@
 
   function isV(l) { 
     return l && (l.startsWith('http://') || l.startsWith('https://')); 
+  }
+
+  function isExempted(varId, lvl) {
+    const v = grp[varId];
+    if (!v) return false;
+    const detail = v.levels[lvl];
+    if (!detail) return false;
+    
+    // Pengecualian Otomatis 1: Teks bukti dukung mengandung "tidak ada dokumen"
+    const reqText = (detail.evidenceReq || "").toLowerCase().trim();
+    if (reqText.includes("tidak ada dokumen yang dipersyaratkan") || reqText.includes("tidak ada dokumen")) {
+      return true;
+    }
+    
+    // Pengecualian Konfigurasi 2: Key (varId_lvl) ada di daftar exemptedKeysList
+    const key = `${varId}_${lvl}`;
+    if (window.exemptedKeysList && window.exemptedKeysList.includes(key)) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  function isAnswered(varId) {
+    const a = ans[varId];
+    if (!a || !a.level) return false;
+    if (isExempted(varId, a.level)) return true;
+    return a.link && isV(a.link);
+  }
+
+  function updateLinkRequirement(varId, lvl) {
+    const labelEl = document.getElementById('link-label');
+    const inputEl = document.getElementById('inp-link');
+    if (isExempted(varId, lvl)) {
+      if (labelEl) labelEl.innerHTML = 'LINK GOOGLE DRIVE (BUKTI DUKUNG): <span class="badge bg-success ms-2">OPSIONAL / TIDAK WAJIB</span>';
+      if (inputEl) inputEl.placeholder = "Pilihan ini tidak wajib melampirkan link.";
+    } else {
+      if (labelEl) labelEl.innerHTML = 'LINK GOOGLE DRIVE (BUKTI DUKUNG): <span class="badge bg-danger ms-2">WAJIB</span>';
+      if (inputEl) inputEl.placeholder = "https://drive.google.com/...";
+    }
   }
 
   function nextS() { 
@@ -226,29 +284,30 @@
       });
     }
     
-    if(!a.link || !a.link.trim()) {
-      return Swal.fire({
-        icon: 'warning',
-        title: 'LINK KOSONG',
-        text: 'Silakan lampirkan link Google Drive sebagai bukti dukung.',
-        confirmButtonColor: '#000'
-      });
+    if(!isExempted(varId, a.level)) {
+      if(!a.link || !a.link.trim()) {
+        return Swal.fire({
+          icon: 'warning',
+          title: 'LINK KOSONG',
+          text: 'Silakan lampirkan link Google Drive sebagai bukti dukung.',
+          confirmButtonColor: '#000'
+        });
+      }
     }
 
     showS(step + 1); 
   }
 
-
   function upP() { 
     if(totQ===0) return; 
-    let f = Object.values(ans).filter(a => a.level && a.link && isV(a.link)).length; 
+    let f = Object.keys(ans).filter(varId => isAnswered(varId)).length; 
     let p = Math.round((f/totQ)*100); 
     document.getElementById('p-bar').style.width = p+'%'; 
     document.getElementById('p-tex').innerText = p+'%'; 
   }
 
   function finS() { 
-    const answeredCount = Object.values(ans).filter(a => a.level && a.link && isV(a.link)).length;
+    const answeredCount = Object.keys(ans).filter(varId => isAnswered(varId)).length;
     if(answeredCount < totQ) return Swal.fire('BELUM SELESAI', `Anda baru mengisi ${answeredCount} dari ${totQ} variabel.`,'warning');
 
     Swal.fire({
@@ -262,7 +321,6 @@
     }).then(result => {
       if(result.isConfirmed) {
         Swal.fire({title:'Mengirim data...', didOpen:()=>Swal.showLoading()}); 
-        // Mapping answer back to format expected by server: [{id_var, level, link}]
         google.script.run.withSuccessHandler(() => {
           window.top.location.href = 'https://bagorsetdamuarojambi.blogspot.com/';
         }).simpanSemuaJawaban({opd: sess.nama_opd, jawaban: Object.values(ans)});
@@ -591,7 +649,6 @@
           <td class="text-center">
             <div class="btn-group">
               <button class="btn btn-sm btn-info text-white fw-bold" onclick="bukaDetail(${i})">Laporan</button>
-              <button class="btn btn-sm btn-primary fw-bold" onclick="cetakBeritaAcara(${i})">Berita Acara</button>
               <button class="btn btn-sm btn-outline-danger" onclick="aksiHapus('verifikasi', '${h.opd}')">Hapus</button>
             </div>
           </td>
@@ -602,7 +659,69 @@
     }).getRekapVerifikasi();
   }
 
-  function loadMasterSoal() { google.script.run.withSuccessHandler(data => { document.getElementById('soal-body').innerHTML = data.map(s => `<tr><td><span class="badge bg-info">${s[1]}</span></td><td>${s[2]}</td><td>${s[4]}</td></tr>`).join(''); }).withFailureHandler(err => { Swal.fire('Error', 'Gagal memuat master soal: ' + (err.message || err), 'error'); }).getPertanyaan(); }
+  function loadMasterSoal() {
+    google.script.run.withSuccessHandler(exemptedKeys => {
+      window.exemptedKeysList = exemptedKeys || [];
+      
+      google.script.run.withSuccessHandler(data => {
+        document.getElementById('soal-body').innerHTML = data.map(s => {
+          const key = `${s[1]}_${s[3]}`;
+          const isExempted = window.exemptedKeysList.includes(key);
+          const isChecked = !isExempted ? 'checked' : '';
+          
+          return `
+            <tr>
+              <td><span class="badge bg-info">${s[1]}</span></td>
+              <td>${s[2]}</td>
+              <td class="text-center"><span class="badge bg-black text-white">TINGKAT ${s[3]}</span></td>
+              <td>${s[4]}</td>
+              <td class="text-center fw-bold">${s[7]}</td>
+              <td class="text-center">
+                <input class="form-check-input border-dark" type="checkbox" 
+                       style="transform: scale(1.2); cursor: pointer;"
+                       onclick="toggleKeyExemption('${s[1]}', ${s[3]}, this.checked)" ${isChecked}>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }).withFailureHandler(err => {
+        Swal.fire('Error', 'Gagal memuat master soal: ' + (err.message || err), 'error');
+      }).getPertanyaan();
+      
+    }).withFailureHandler(err => {
+      Swal.fire('Error', 'Gagal memuat data pengecualian: ' + (err.message || err), 'error');
+    }).getExemptedKeys();
+  }
+
+  function toggleKeyExemption(idSoal, level, isWajib) {
+    const key = `${idSoal}_${level}`;
+    let list = window.exemptedKeysList || [];
+    
+    if (isWajib) {
+      list = list.filter(k => k !== key);
+    } else {
+      if (!list.includes(key)) list.push(key);
+    }
+    
+    window.exemptedKeysList = list;
+    
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 1000,
+      timerProgressBar: true
+    });
+    
+    google.script.run.withSuccessHandler(res => {
+      Toast.fire({
+        icon: 'success',
+        title: 'Status wajib bukti diperbarui'
+      });
+    }).withFailureHandler(err => {
+      Swal.fire('Error', 'Gagal menyimpan perubahan: ' + (err.message || err), 'error');
+    }).simpanExemptedKeys(list);
+  }
   
   function loadMasterUser() {
     google.script.run.withSuccessHandler(data => {
