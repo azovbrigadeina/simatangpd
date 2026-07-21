@@ -134,6 +134,66 @@ function simpanUserBaru(payload) {
   return "User Berhasil Ditambahkan";
 }
 
+function simpanEditUser(payload) {
+  const oldUsername = (payload.old_username || "").toString().trim();
+  const rawUsername = (payload.username || "").toString().trim();
+  const password = (payload.password || "").toString().trim();
+  const role = payload.role;
+  const nama_opd = (payload.nama_opd || "").toString().trim();
+
+  if (!rawUsername || !password || !nama_opd) {
+    throw new Error("Semua data harus diisi!");
+  }
+
+  if (SETTINGS.USE_FIREBASE) {
+    const oldKey = Firebase.escapeKey(oldUsername);
+    const newKey = Firebase.escapeKey(rawUsername);
+
+    if (oldKey !== newKey) {
+      const existing = Firebase.get(`users/${newKey}`);
+      if (existing) {
+        throw new Error("Username baru sudah terdaftar!");
+      }
+      Firebase.remove(`users/${oldKey}`);
+    }
+
+    Firebase.put(`users/${newKey}`, {
+      password: password,
+      role: role,
+      nama_opd: nama_opd
+    });
+
+    return "Data User Berhasil Diperbarui";
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("Users");
+  const data = sheet.getDataRange().getValues();
+
+  let targetRowIndex = -1;
+  for (let i = 1; i < data.length; i++) {
+    const currentU = data[i][0].toString().trim();
+    if (currentU === oldUsername) {
+      targetRowIndex = i + 1;
+    } else if (currentU === rawUsername && oldUsername !== rawUsername) {
+      throw new Error("Username baru sudah terdaftar!");
+    }
+  }
+
+  if (targetRowIndex === -1) {
+    throw new Error("User tidak ditemukan!");
+  }
+
+  sheet.getRange(targetRowIndex, 1, 1, 4).setValues([[
+    rawUsername,
+    password,
+    role,
+    nama_opd
+  ]]);
+
+  return "Data User Berhasil Diperbarui";
+}
+
 function hapusUser(username) {
   if (SETTINGS.USE_FIREBASE) {
     const u = Firebase.escapeKey(username.toString().trim());
@@ -157,3 +217,4 @@ function hapusUser(username) {
   }
   throw new Error("User tidak ditemukan");
 }
+

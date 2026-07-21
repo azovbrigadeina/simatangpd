@@ -18,23 +18,66 @@
         </div>
       </div>
       <h1 class="display-4 fw-bold mb-1" style="letter-spacing: -1px;">SIMatang-PD</h1>
-      <p class="lead mb-5 fw-bold mx-auto" style="max-width: 600px; font-size: 1.25rem; background: var(--accent); display: inline-block; padding: 5px 15px; border: 3px solid #000;">Sistem Informasi Kematangan Perangkat Daerah</p>
+      <p class="lead mb-4 fw-bold mx-auto" style="max-width: 750px; font-size: 1.25rem; background: var(--accent); display: inline-block; padding: 5px 15px; border: 3px solid #000;">Sistem Informasi Kematangan Perangkat Daerah <span class="pulse-text">Kabupaten Muaro Jambi</span></p>
       
-        <span class="badge-brut" style="font-size: 1rem; letter-spacing: 2px;">PILIH AKSES</span>
-
-      <div class="row justify-content-center g-4">
-        <div class="col-md-4 col-lg-3" onclick="openL('Responden')">
-          <div class="p-4 brut-card" style="cursor:pointer; background: var(--pink); color: white;">
-            <div class="mb-3" style="font-size: 3rem;">📝</div>
-            <h4 class="fw-bold mb-0">RESPONDEN</h4>
-            <p class="small mt-2 fw-bold text-uppercase" style="font-size: 0.8rem; background: #000; display: inline-block; padding: 2px 8px;">Input Data</p>
-          </div>
+      <!-- Pilih Akses Section (Compact) -->
+      <div class="mt-4 mb-4 pt-2">
+        <span class="badge-brut mb-3" style="font-size: 0.9rem; letter-spacing: 1px; display: inline-block;">PILIH AKSES MASUK</span>
+        <div class="d-flex justify-content-center gap-3">
+          <button class="btn btn-brut btn-brut-pink d-flex align-items-center gap-2" onclick="openL('Responden')" style="padding: 10px 20px;">
+            <span style="font-size: 1.2rem;">📝</span> <span style="font-size: 0.9rem;">RESPONDEN</span>
+          </button>
+          <button class="btn btn-brut btn-brut-green d-flex align-items-center gap-2" onclick="openL('Evaluator')" style="padding: 10px 20px;">
+            <span style="font-size: 1.2rem;">🛡️</span> <span style="font-size: 0.9rem;">EVALUATOR</span>
+          </button>
         </div>
-        <div class="col-md-4 col-lg-3" onclick="openL('Evaluator')">
-          <div class="p-4 brut-card" style="cursor:pointer; background: var(--green);">
-            <div class="mb-3" style="font-size: 3rem;">🛡️</div>
-            <h4 class="fw-bold mb-0">EVALUATOR</h4>
-            <p class="small mt-2 fw-bold text-uppercase" style="font-size: 0.8rem; background: #000; color: #fff; display: inline-block; padding: 2px 8px;">Verifikasi</p>
+      </div>
+
+      <!-- Statistik Publik Section -->
+      <div class="mt-5 mx-auto" style="max-width: 900px;">
+        <h4 class="fw-bold mb-4 text-uppercase" style="letter-spacing: 1px; display: inline-block; background: var(--accent); padding: 5px 15px; border: 3px solid #000;">📊 STATISTIK KEMATANGAN PD TAHUN 2026</h4>
+        
+        <!-- Loading Spinner -->
+        <div id="pub-stats-loading" class="text-center py-4">
+          <div class="spinner-border text-black" role="status"></div>
+          <p class="mt-2 fw-bold small text-uppercase">Memuat statistik publik...</p>
+        </div>
+
+        <!-- Content Area -->
+        <div id="pub-stats-content" class="hidden">
+          <div class="row g-4 mb-4">
+            <!-- Avg Mandiri Card -->
+            <div class="col-md-6">
+              <div class="brut-card text-center" id="card-pub-mandiri" style="background: white;">
+                <h6 class="fw-bold text-uppercase">Rata-Rata Indeks Mandiri</h6>
+                <h1 id="pub-mandiri-val" class="fw-bold" style="font-size: 2.5rem; margin-top: 10px;">0.00</h1>
+                <span id="pub-mandiri-lbl" class="badge bg-secondary fs-6 mt-2">Memuat...</span>
+              </div>
+            </div>
+            <!-- Avg Kabupaten Card -->
+            <div class="col-md-6">
+              <div class="brut-card text-center" id="card-pub-kab" style="background: white;">
+                <h6 class="fw-bold text-uppercase">Rata-Rata Indeks Kabupaten</h6>
+                <h1 id="pub-kab-val" class="fw-bold" style="font-size: 2.5rem; margin-top: 10px;">0.00</h1>
+                <span id="pub-kab-lbl" class="badge bg-secondary fs-6 mt-2">Memuat...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top 3 Ranking Lists -->
+          <div class="row g-4 text-start">
+            <div class="col-md-6">
+              <div class="brut-card" style="background: white;">
+                <h6 class="fw-bold mb-3 border-bottom border-black pb-2 text-uppercase"><i class="bi bi-trophy-fill text-warning me-1"></i> Top 3 OPD (Mandiri)</h6>
+                <ul id="list-pub-top-mandiri" class="list-group list-group-flush small" style="border: 1px solid #dee2e6; border-radius: 4px;"></ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="brut-card" style="background: white;">
+                <h6 class="fw-bold mb-3 border-bottom border-black pb-2 text-uppercase"><i class="bi bi-trophy-fill text-warning me-1"></i> Top 3 OPD (Kabupaten)</h6>
+                <ul id="list-pub-top-kab" class="list-group list-group-flush small" style="border: 1px solid #dee2e6; border-radius: 4px;"></ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -49,7 +92,7 @@
 
 <!-- Footer Global -->
 <footer id="global-footer" class="main-footer">
-  Made with ❤️ by <b>Bagian Organisasi Setda Kab. Muaro Jambi</b> 🇮🇩x🇺🇦
+  Made with ❤️ by <b>Bagian Organisasi Setda Kab. Muaro Jambi</b>
 </footer>
 
 <!-- Modals -->

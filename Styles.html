@@ -252,4 +252,26 @@
     transform: translate(2px, 2px);
     outline: 3px solid #000;
   }
+
+  /* Pulsating text highlight effect */
+  @keyframes pulse-text {
+    0% {
+      transform: scale(1);
+      text-shadow: 2px 2px 0px var(--cyan);
+    }
+    50% {
+      transform: scale(1.05);
+      text-shadow: -2px -2px 0px var(--pink);
+    }
+    100% {
+      transform: scale(1);
+      text-shadow: 2px 2px 0px var(--cyan);
+    }
+  }
+  .pulse-text {
+    display: inline-block;
+    animation: pulse-text 2s infinite ease-in-out;
+    font-weight: 800;
+    color: #000;
+  }
 </style>

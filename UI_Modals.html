@@ -32,15 +32,16 @@
   </div>
 </div>
 
-<!-- Modal Tambah User -->
+<!-- Modal Tambah / Edit User -->
 <div class="modal fade" id="modalAddUser" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header bg-black text-white">
-        <h5 class="modal-title fw-bold">TAMBAH PENGGUNA BARU</h5>
+        <h5 class="modal-title fw-bold" id="modalUserTitle">TAMBAH PENGGUNA BARU</h5>
         <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form onsubmit="event.preventDefault(); prosesSimpanUser();">
+        <input type="hidden" id="edit-old-user" value="">
         <div class="modal-body">
           <div class="mb-3"><label class="form-label small fw-bold">Username</label><input type="text" id="new-user" class="form-control" placeholder="Contoh: dinkes_user" required></div>
           <div class="mb-3"><label class="form-label small fw-bold">Password</label><input type="text" id="new-pass" class="form-control" placeholder="Masukkan password" required></div>
@@ -55,7 +56,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-brut bg-light" data-bs-dismiss="modal">BATAL</button>
-          <button type="submit" class="btn btn-brut">SIMPAN USER</button>
+          <button type="submit" class="btn btn-brut" id="btnSubmitUser">SIMPAN USER</button>
         </div>
       </form>
     </div>

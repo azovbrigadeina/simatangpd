@@ -11,7 +11,66 @@
     mLogin = new bootstrap.Modal(document.getElementById('modL'));
     mDetail = new bootstrap.Modal(document.getElementById('modalDetail'));
     modalAddUser = new bootstrap.Modal(document.getElementById('modalAddUser'));
+    
+    // Pemuatan statistik publik
+    loadPublicStats();
   });
+
+  function loadPublicStats() {
+    google.script.run.withSuccessHandler(res => {
+      // Sembunyikan spinner dan tampilkan konten
+      document.getElementById('pub-stats-loading').classList.add('hidden');
+      document.getElementById('pub-stats-content').classList.remove('hidden');
+
+      // Set rata-rata Mandiri
+      const avgMandiri = parseFloat(res.avgMandiri || 0);
+      document.getElementById('pub-mandiri-val').innerText = avgMandiri.toFixed(2);
+      const katMandiri = getKategori(avgMandiri);
+      const lblMandiri = document.getElementById('pub-mandiri-lbl');
+      lblMandiri.innerText = katMandiri.label;
+      lblMandiri.className = 'badge fs-6 mt-2';
+      lblMandiri.style.backgroundColor = katMandiri.color;
+      document.getElementById('card-pub-mandiri').style.borderBottom = `8px solid ${katMandiri.color}`;
+
+      // Set rata-rata Kabupaten (Provinsi)
+      const avgProvinsi = parseFloat(res.avgProvinsi || 0);
+      document.getElementById('pub-kab-val').innerText = avgProvinsi.toFixed(2);
+      const katKab = getKategori(avgProvinsi);
+      const lblKab = document.getElementById('pub-kab-lbl');
+      lblKab.innerText = katKab.label;
+      lblKab.className = 'badge fs-6 mt-2';
+      lblKab.style.backgroundColor = katKab.color;
+      document.getElementById('card-pub-kab').style.borderBottom = `8px solid ${katKab.color}`;
+
+      // Render daftar Top 3 terbaik
+      const renderTop3 = (arr, elId) => {
+        let html = '';
+        if(!arr || arr.length === 0) {
+          html = '<li class="list-group-item text-muted text-center py-3">Belum ada data</li>';
+        } else {
+          // Hanya ambil 3 teratas
+          const top3 = arr.slice(0, 3);
+          top3.forEach((it, i) => {
+            html += `<li class="list-group-item d-flex justify-content-between align-items-center px-2 py-2">
+              <span class="text-truncate" style="max-width: 75%;" title="${it.opd}"><b>${i+1}.</b> ${it.opd}</span>
+              <span class="badge bg-black rounded-pill">${parseFloat(it.nilai).toFixed(2)}</span>
+            </li>`;
+          });
+        }
+        document.getElementById(elId).innerHTML = html;
+      };
+
+      renderTop3(res.top5Mandiri, 'list-pub-top-mandiri');
+      renderTop3(res.top5Kab, 'list-pub-top-kab');
+
+    }).withFailureHandler(err => {
+      console.error("Gagal memuat statistik publik:", err);
+      document.getElementById('pub-stats-loading').innerHTML = `
+        <div class="text-danger fw-bold py-2">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i> Gagal memuat statistik publik: ${(err.message || err)}
+        </div>`;
+    }).getStats();
+  }
 
   function openL(r) { sess.role = r; document.getElementById('titleL').innerText = 'LOGIN ' + r.toUpperCase(); mLogin.show(); }
   
@@ -501,8 +560,10 @@
 
     let h = `
       <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
-        <span>${isProv ? 'Memvalidasi' : 'Memverifikasi'} Dimensi Tata Kelola: <b>${opdName}</b> (${isProv ? 'Provinsi' : 'Kabupaten'})</span>
-        <div class="d-flex gap-2">
+        <div>
+          <i class="bi bi-info-circle-fill me-1"></i> <b>Petunjuk Pengisian:</b> Periksa kesesuaian jawaban dan bukti dukung OPD <b>${opdName}</b>, tentukan skala nilai ${isProv ? 'validasi provinsi' : 'evaluasi'}, lalu simpan hasil verifikasi di bagian bawah.
+        </div>
+        <div class="d-flex gap-2 flex-shrink-0 ms-3">
           <button class="btn btn-sm btn-outline-primary fw-bold" onclick="samakanSkorSemua()">
             <i class="bi bi-check-all"></i> Samakan Semua (dari ${isProv ? 'Kabupaten' : 'Responden'})
           </button>
@@ -553,6 +614,9 @@
           <div class="col-12 mb-3 d-flex justify-content-between align-items-start">
             <div>
               <h6 class="fw-bold mb-1">${it.pertanyaan}</h6>
+              <div class="mt-2 mb-2 p-2 bg-light border-start border-3 border-secondary text-secondary small rounded" style="font-size: 0.85rem; line-height: 1.4;">
+                <strong>Tingkat ${it.skala_responden ? romanize(it.skala_responden) : '-'}:</strong> ${(it.indikator || '-').replace(/\n/g, '<br>')}
+              </div>
               <a href="${it.link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-link-45deg"></i> Bukti Dukung</a>
             </div>
             <button class="btn btn-sm btn-primary fw-bold" onclick="samakanSkorSatu(${i})">
@@ -723,16 +787,22 @@
     }).simpanExemptedKeys(list);
   }
   
+  let currentMasterUsers = [];
   function loadMasterUser() {
     google.script.run.withSuccessHandler(data => {
-      document.getElementById('user-body').innerHTML = data.map(u => `
+      currentMasterUsers = data || [];
+      document.getElementById('user-body').innerHTML = currentMasterUsers.map((u, idx) => `
         <tr>
           <td><b>${u[0]}</b></td>
-          <td><span class="badge bg-light text-dark">${u[2]}</span></td>
+          <td><code class="text-dark bg-light px-2 py-1 border rounded fw-bold">${u[1]}</code></td>
+          <td><span class="badge bg-light text-dark border">${u[2]}</span></td>
           <td>${u[3]}</td>
           <td class="text-end">
-            <button class="btn btn-sm btn-outline-danger" onclick="aksiHapusUser('${u[0]}')">
-              <i class="bi bi-trash"></i>
+            <button class="btn btn-sm btn-outline-primary me-1" title="Edit User" onclick="bukaModalEditUser(${idx})">
+              <i class="bi bi-pencil-square"></i> Edit
+            </button>
+            <button class="btn btn-sm btn-outline-danger" title="Hapus User" onclick="aksiHapusUser(${idx})">
+              <i class="bi bi-trash"></i> Hapus
             </button>
           </td>
         </tr>`).join('');
@@ -938,9 +1008,12 @@
   }
 
   function bukaModalTambahUser() {
+    document.getElementById('modalUserTitle').innerText = 'TAMBAH PENGGUNA BARU';
+    document.getElementById('edit-old-user').value = '';
     document.getElementById('new-user').value = '';
     document.getElementById('new-pass').value = '';
     document.getElementById('new-role').value = 'Responden';
+    document.getElementById('btnSubmitUser').innerText = 'SIMPAN USER';
     google.script.run.withSuccessHandler(list => {
       let select = document.getElementById('new-opd');
       let h = '<option value="">-- Pilih OPD --</option>';
@@ -950,8 +1023,38 @@
     }).getListOPD();
   }
 
+  function bukaModalEditUser(idx) {
+    const u = currentMasterUsers[idx];
+    if (!u) return;
+    document.getElementById('modalUserTitle').innerText = 'EDIT PENGGUNA';
+    document.getElementById('edit-old-user').value = u[0];
+    document.getElementById('new-user').value = u[0];
+    document.getElementById('new-pass').value = u[1];
+    document.getElementById('new-role').value = u[2];
+    document.getElementById('btnSubmitUser').innerText = 'UPDATE USER';
+
+    google.script.run.withSuccessHandler(list => {
+      let select = document.getElementById('new-opd');
+      let h = '<option value="">-- Pilih OPD --</option>';
+      let found = false;
+      list.forEach(nama => {
+        const isSel = (nama === u[3]);
+        if (isSel) found = true;
+        h += `<option value="${nama}" ${isSel ? 'selected' : ''}>${nama}</option>`;
+      });
+      if (u[3] && !found) {
+        h += `<option value="${u[3]}" selected>${u[3]}</option>`;
+      }
+      select.innerHTML = h;
+      select.value = u[3];
+      modalAddUser.show();
+    }).getListOPD();
+  }
+
   function prosesSimpanUser() {
+    const oldUsername = document.getElementById('edit-old-user').value.trim();
     const payload = {
+      old_username: oldUsername,
       username: document.getElementById('new-user').value.trim(),
       password: document.getElementById('new-pass').value.trim(),
       role: document.getElementById('new-role').value,
@@ -959,16 +1062,32 @@
     };
     if (!payload.username || !payload.password || !payload.nama_opd) return Swal.fire('Peringatan', 'Semua data harus diisi!', 'warning');
     Swal.fire({title: 'Menyimpan...', didOpen: () => Swal.showLoading()});
-    google.script.run.withSuccessHandler(res => {
-      Swal.fire('Berhasil', res, 'success');
-      modalAddUser.hide();
-      loadMasterUser();
-    }).withFailureHandler(err => {
-      Swal.fire('Gagal', err.message, 'error');
-    }).simpanUserBaru(payload);
+    
+    if (oldUsername) {
+      google.script.run.withSuccessHandler(res => {
+        Swal.fire('Berhasil', res, 'success');
+        modalAddUser.hide();
+        loadMasterUser();
+      }).withFailureHandler(err => {
+        Swal.fire('Gagal', err.message, 'error');
+      }).simpanEditUser(payload);
+    } else {
+      google.script.run.withSuccessHandler(res => {
+        Swal.fire('Berhasil', res, 'success');
+        modalAddUser.hide();
+        loadMasterUser();
+      }).withFailureHandler(err => {
+        Swal.fire('Gagal', err.message, 'error');
+      }).simpanUserBaru(payload);
+    }
   }
 
-  function aksiHapusUser(username) {
+  function aksiHapusUser(target) {
+    let username = target;
+    if (typeof target === 'number') {
+      const u = currentMasterUsers[target];
+      if (u) username = u[0];
+    }
     if(username === sess.username) return Swal.fire('Error', 'Anda tidak bisa menghapus akun sendiri!', 'error');
     Swal.fire({
       title: 'Hapus User?',
