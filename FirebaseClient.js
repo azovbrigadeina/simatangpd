@@ -42,16 +42,20 @@ const Firebase = {
     return PropertiesService.getScriptProperties().getProperty('FIREBASE_SECRET') || SETTINGS.FIREBASE_SECRET || "";
   },
 
+  buildUrl: function(path) {
+    const dbUrl = this.getDbUrl();
+    const secret = this.getSecret();
+    if (!dbUrl) throw new Error("Firebase Database URL belum dikonfigurasi.");
+    const safePath = (path || "").split('/').map(segment => encodeURIComponent(segment)).join('/');
+    return `${dbUrl}/${safePath}.json${secret ? '?auth=' + secret : ''}`;
+  },
+
   /**
    * Mengambil data dari path tertentu
    * @param {string} path - Path database (contoh: "users" atau "jawaban/OPD_A")
    */
   get: function(path) {
-    const dbUrl = this.getDbUrl();
-    const secret = this.getSecret();
-    if (!dbUrl) throw new Error("Firebase Database URL belum dikonfigurasi.");
-
-    const url = `${dbUrl}/${path}.json${secret ? '?auth=' + secret : ''}`;
+    const url = this.buildUrl(path);
     const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
     
     if (response.getResponseCode() !== 200) {
@@ -66,11 +70,7 @@ const Firebase = {
    * @param {Object} data - Data yang akan disimpan
    */
   put: function(path, data) {
-    const dbUrl = this.getDbUrl();
-    const secret = this.getSecret();
-    if (!dbUrl) throw new Error("Firebase Database URL belum dikonfigurasi.");
-
-    const url = `${dbUrl}/${path}.json${secret ? '?auth=' + secret : ''}`;
+    const url = this.buildUrl(path);
     const options = {
       method: 'put',
       contentType: 'application/json',
@@ -95,11 +95,7 @@ const Firebase = {
    * @param {Object} data - Objek data yang ingin diperbarui
    */
   patch: function(path, data) {
-    const dbUrl = this.getDbUrl();
-    const secret = this.getSecret();
-    if (!dbUrl) throw new Error("Firebase Database URL belum dikonfigurasi.");
-
-    const url = `${dbUrl}/${path}.json${secret ? '?auth=' + secret : ''}`;
+    const url = this.buildUrl(path);
     const options = {
       method: 'patch',
       contentType: 'application/json',
@@ -120,11 +116,7 @@ const Firebase = {
    * @param {Object} data - Data yang ingin ditambahkan
    */
   post: function(path, data) {
-    const dbUrl = this.getDbUrl();
-    const secret = this.getSecret();
-    if (!dbUrl) throw new Error("Firebase Database URL belum dikonfigurasi.");
-
-    const url = `${dbUrl}/${path}.json${secret ? '?auth=' + secret : ''}`;
+    const url = this.buildUrl(path);
     const options = {
       method: 'post',
       contentType: 'application/json',
@@ -144,11 +136,7 @@ const Firebase = {
    * @param {string} path - Path database
    */
   remove: function(path) {
-    const dbUrl = this.getDbUrl();
-    const secret = this.getSecret();
-    if (!dbUrl) throw new Error("Firebase Database URL belum dikonfigurasi.");
-
-    const url = `${dbUrl}/${path}.json${secret ? '?auth=' + secret : ''}`;
+    const url = this.buildUrl(path);
     const options = {
       method: 'delete',
       muteHttpExceptions: true

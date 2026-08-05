@@ -581,6 +581,7 @@
 
   let opdListCache = [];
   let activeFilter = 'semua';
+  let currentSelectedOPDStatus = 'SUBMITTED';
 
   function initV() {
     const isProv = sess.role === 'Provinsi';
@@ -611,18 +612,38 @@
     opdListCache.forEach((item, idx) => {
       const verif = isProv ? item.verifProv : item.verifKab;
       const total = item.totalVar;
-      let status, statusClass, badgeClass, statusLabel, badgeText;
+      const isDraft = (item.status === 'DRAFT');
+      let status, statusClass, badgeClass, statusLabel, badgeText, statusColor;
 
-      if (verif >= total && total > 0) {
-        status = 'selesai'; statusClass = 'opd-item--selesai'; badgeClass = 'opd-item__badge--selesai';
-        statusLabel = '✅ Selesai'; badgeText = '✓';
+      if (isDraft) {
+        status = 'draft'; 
+        statusClass = 'opd-item--draft'; 
+        badgeClass = 'opd-item__badge--draft';
+        statusLabel = '📝 DRAFT (BELUM SUBMIT)'; 
+        badgeText = `${total}`;
+        statusColor = '#e65100';
+      } else if (verif >= total && total > 0) {
+        status = 'selesai'; 
+        statusClass = 'opd-item--selesai'; 
+        badgeClass = 'opd-item__badge--selesai';
+        statusLabel = '✅ Selesai'; 
+        badgeText = '✓';
+        statusColor = '#198754';
         selesaiCount++;
       } else if (verif > 0) {
-        status = 'sebagian'; statusClass = 'opd-item--sebagian'; badgeClass = 'opd-item__badge--sebagian';
-        statusLabel = `⚠️ ${verif}/${total}`; badgeText = `${verif}`;
+        status = 'sebagian'; 
+        statusClass = 'opd-item--sebagian'; 
+        badgeClass = 'opd-item__badge--sebagian';
+        statusLabel = `⚠️ ${verif}/${total}`; 
+        badgeText = `${verif}`;
+        statusColor = '#856404';
       } else {
-        status = 'belum'; statusClass = 'opd-item--belum'; badgeClass = 'opd-item__badge--belum';
-        statusLabel = '⏳ Belum'; badgeText = '—';
+        status = 'belum'; 
+        statusClass = 'opd-item--belum'; 
+        badgeClass = 'opd-item__badge--belum';
+        statusLabel = '⏳ Belum Verifikasi'; 
+        badgeText = '—';
+        statusColor = '#dc3545';
       }
 
       // Filter by status
@@ -635,7 +656,7 @@
         <div class="opd-item ${statusClass}" onclick="pilihOPD('${item.opd.replace(/'/g, "\\'")}')" title="${item.opd}">
           <div class="opd-item__info">
             <div class="opd-item__name">${item.opd}</div>
-            <div class="opd-item__status" style="color:${status==='selesai'?'#198754':status==='sebagian'?'#856404':'#dc3545'}">${statusLabel}</div>
+            <div class="opd-item__status" style="color:${statusColor}">${statusLabel}</div>
           </div>
           <div class="opd-item__badge ${badgeClass}">${badgeText}</div>
         </div>`;
@@ -669,7 +690,9 @@
   function pilihOPD(namaOPD) {
     Swal.fire({title:'Memuat data...', didOpen:()=>Swal.showLoading()});
     google.script.run.withSuccessHandler(res => { 
-      Swal.close(); vData = res.items;
+      Swal.close(); 
+      vData = res.items || [];
+      currentSelectedOPDStatus = res.status || (res.isFinal ? 'SUBMITTED' : 'DRAFT');
       // Sembunyikan grid, tampilkan detail
       document.getElementById('v-card-grid').classList.add('hidden');
       document.getElementById('v-progress-section').classList.add('hidden');
@@ -700,15 +723,29 @@
 
   function renderVList(opdName) {
     document.getElementById('v-det').classList.remove('hidden');
+    document.getElementById('v-det').dataset.currentOpd = opdName;
     const isProv = sess.role === 'Provinsi';
+    const isDraft = (currentSelectedOPDStatus === 'DRAFT');
 
-    let h = `
+    let draftBanner = '';
+    if (isDraft) {
+      draftBanner = `
+        <div class="alert alert-warning border border-3 border-dark shadow-sm d-flex align-items-center gap-3 mb-3 p-3" style="background:#fff3cd; color:#856404; border-radius: 8px;">
+          <div class="fs-1 text-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
+          <div>
+            <div class="fw-bold fs-6 text-uppercase" style="color:#d97706;"><i class="bi bi-lock-fill me-1"></i> STATUS OPD: MASIH DRAFT (BELUM DIKIRIM FINAL)</div>
+            <div class="small mt-1">OPD ini baru menyimpan <b>isian sementara (Draft)</b> dan belum melakukan pengiriman jawaban secara final. Anda hanya dapat memantau isian sementara. <b>Hasil verifikasi TIDAK DAPAT DISIMPAN</b> sampai OPD mengirim jawaban secara resmi.</div>
+          </div>
+        </div>`;
+    }
+
+    let h = draftBanner + `
       <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
         <div>
           <i class="bi bi-info-circle-fill me-1"></i> <b>Petunjuk Pengisian:</b> Periksa kesesuaian jawaban dan bukti dukung OPD <b>${opdName}</b>, tentukan skala nilai ${isProv ? 'validasi provinsi' : 'evaluasi'}, lalu simpan hasil verifikasi di bagian bawah.
         </div>
         <div class="d-flex gap-2 flex-shrink-0 ms-3">
-          <button class="btn btn-sm btn-outline-primary fw-bold" onclick="samakanSkorSemua()">
+          <button class="btn btn-sm btn-outline-primary fw-bold" onclick="samakanSkorSemua()" ${isDraft ? 'disabled' : ''}>
             <i class="bi bi-check-all"></i> Samakan Semua (dari ${isProv ? 'Kabupaten' : 'Responden'})
           </button>
           ${!isProv ? `<button class="btn btn-sm btn-danger fw-bold" onclick="aksiHapus('jawaban', '${opdName}')">
@@ -724,14 +761,14 @@
         : `
           <div class="col-eval-skala">
             <small class="d-block text-muted text-primary fw-bold">Skala Kab:</small>
-            <select id="sel-eval-${i}" class="form-select form-select-sm border-primary" onchange="vData[${i}].skala_evaluator=this.value">
+            <select id="sel-eval-${i}" class="form-select form-select-sm border-primary" onchange="vData[${i}].skala_evaluator=this.value" ${isDraft ? 'disabled' : ''}>
               <option value="">-</option>
               ${[0,1,2,3,4,5].map(v=>`<option value="${v}" ${it.skala_evaluator.toString()===v.toString()?'selected':''}>${v}</option>`).join('')}
             </select>
           </div>
           <div class="col-eval-catatan">
             <small class="d-block text-muted text-primary fw-bold">Catatan Kab:</small>
-            <textarea class="form-control form-control-sm border-primary" rows="1" oninput="vData[${i}].catatan=this.value" placeholder="..."> ${it.catatan||''}</textarea>
+            <textarea class="form-control form-control-sm border-primary" rows="1" oninput="vData[${i}].catatan=this.value" placeholder="..." ${isDraft ? 'disabled' : ''}>${it.catatan||''}</textarea>
           </div>
         `;
         
@@ -740,47 +777,70 @@
         ? `
           <div class="col-eval-skala">
             <small class="d-block text-muted text-success fw-bold">Skala Prov:</small>
-            <select id="sel-prov-${i}" class="form-select form-select-sm border-success" onchange="vData[${i}].skala_provinsi=this.value">
+            <select id="sel-prov-${i}" class="form-select form-select-sm border-success" onchange="vData[${i}].skala_provinsi=this.value" ${isDraft ? 'disabled' : ''}>
               <option value="">-</option>
               ${[0,1,2,3,4,5].map(v=>`<option value="${v}" ${it.skala_provinsi.toString()===v.toString()?'selected':''}>${v}</option>`).join('')}
             </select>
           </div>
           <div class="col-eval-catatan">
             <small class="d-block text-muted text-success fw-bold">Catatan Prov:</small>
-            <textarea class="form-control form-control-sm border-success" rows="1" oninput="vData[${i}].catatan_provinsi=this.value" placeholder="..."> ${it.catatan_provinsi||''}</textarea>
+            <textarea class="form-control form-control-sm border-success" rows="1" oninput="vData[${i}].catatan_provinsi=this.value" placeholder="..." ${isDraft ? 'disabled' : ''}>${it.catatan_provinsi||''}</textarea>
           </div>
         ` 
         : `<div class="badge-resp"><small class="d-block text-muted">Prov:</small><span class="badge bg-success fs-6">${it.skala_provinsi || '-'}</span></div>`;
 
+      const linkHtml = it.link 
+        ? `<a href="${it.link}" target="_blank" class="btn btn-sm btn-outline-secondary text-truncate" style="max-width: 250px;"><i class="bi bi-link-45deg me-1"></i> ${it.link}</a>`
+        : `<span class="badge bg-light text-muted border">Tidak Ada Link</span>`;
+
       return `
-      <div class="q-card shadow-sm border-start border-5 ${isProv ? 'border-success' : 'border-primary'}">
-        <div class="row align-items-center">
-          <div class="col-12 mb-3 d-flex justify-content-between align-items-start">
-            <div>
-              <h6 class="fw-bold mb-1">${it.pertanyaan}</h6>
-              <div class="mt-2 mb-2 p-2 bg-light border-start border-3 border-secondary text-secondary small rounded" style="font-size: 0.85rem; line-height: 1.4;">
-                <strong>Tingkat ${it.skala_responden ? romanize(it.skala_responden) : '-'}:</strong> ${(it.indikator || '-').replace(/\n/g, '<br>')}
-              </div>
-              <a href="${it.link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-link-45deg"></i> Bukti Dukung</a>
+        <div class="brut-card q-card mb-3 p-3">
+          <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+            <div class="fw-bold">
+              <span class="badge bg-dark me-2">ID: ${it.id_soal}</span>
+              ${it.pertanyaan}
             </div>
-            <button class="btn btn-sm btn-primary fw-bold" onclick="samakanSkorSatu(${i})">
-              <i class="bi bi-arrow-right-short"></i> Samakan (${isProv ? 'Kab' : 'Resp'})
-            </button>
+            <div class="badge-resp text-center flex-shrink-0 ms-2">
+              <small class="d-block text-muted">Resp:</small>
+              <span class="badge bg-secondary fs-6">${it.skala_responden !== undefined && it.skala_responden !== '' ? it.skala_responden : '-'}</span>
+            </div>
           </div>
-          <div class="col-12 d-flex gap-2 align-items-center">
-            <div class="badge-resp"><small class="d-block text-muted">Resp:</small><span class="badge bg-secondary fs-6">${it.skala_responden}</span></div>
+          <div class="small text-muted mb-2"><i class="bi bi-tag-fill me-1"></i><b>Indikator:</b> ${it.indikator}</div>
+          <div class="mb-3">${linkHtml}</div>
+          <div class="eval-input-grid border-top pt-2">
             ${evalInput}
             ${provInput}
+            <div class="col-eval-action align-self-end">
+              <button class="btn btn-sm btn-outline-secondary w-100 fw-bold" onclick="samakanSkorSatu(${i})" ${isDraft ? 'disabled' : ''}>
+                <i class="bi bi-arrow-left-right me-1"></i> Samakan
+              </button>
+            </div>
           </div>
         </div>
-      </div>`;
+      `;
     }).join('');
 
-    // Store current OPD name for save
-    document.getElementById('v-det').dataset.currentOpd = opdName;
+    // Update status tombol simpan verifikasi
+    const btnSave = document.getElementById('v-btn-save');
+    if (btnSave) {
+      if (isDraft) {
+        btnSave.disabled = true;
+        btnSave.className = "btn btn-brut btn-secondary px-5";
+        btnSave.style.cursor = "not-allowed";
+        btnSave.style.opacity = "0.75";
+        btnSave.innerHTML = '🔒 DIKUNCI (STATUS OPD MASIH DRAFT)';
+      } else {
+        btnSave.disabled = false;
+        btnSave.className = "btn btn-brut btn-brut-green px-5";
+        btnSave.style.cursor = "pointer";
+        btnSave.style.opacity = "1";
+        btnSave.innerText = isProv ? '💾 SIMPAN VALIDASI' : '💾 SIMPAN VERIFIKASI';
+      }
+    }
   }
 
   function samakanSkorSatu(idx) {
+    if (currentSelectedOPDStatus === 'DRAFT') return;
     if (sess.role === 'Provinsi') {
       vData[idx].skala_provinsi = vData[idx].skala_evaluator;
       document.getElementById('sel-prov-' + idx).value = vData[idx].skala_evaluator;
@@ -797,6 +857,7 @@
   }
 
   function samakanSkorSemua() {
+    if (currentSelectedOPDStatus === 'DRAFT') return;
     const opdName = document.getElementById('v-det').dataset.currentOpd;
     const isProv = sess.role === 'Provinsi';
     if (isProv) {
@@ -815,6 +876,14 @@
   }
 
   function kirimV() { 
+    if (currentSelectedOPDStatus === 'DRAFT') {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'PENGIRIMAN DIKUNCI',
+        text: 'Status pengisian OPD ini masih DRAFT (Belum dikirim final). Hasil verifikasi tidak dapat disimpan sampai OPD menyelesaikan pengisian.',
+        confirmButtonColor: '#000'
+      });
+    }
     const opdName = document.getElementById('v-det').dataset.currentOpd;
     if (!opdName) return Swal.fire('Error', 'OPD tidak ditemukan', 'error');
     const isProv = sess.role === 'Provinsi';

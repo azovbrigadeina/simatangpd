@@ -10,7 +10,7 @@ V_NUM=$(echo "$V_OUTPUT" | grep -oE '[0-9]+' | tail -n 1)
 
 if [ -z "$V_NUM" ]; then
   echo "Catatan: Menggunakan versi tertinggi yang tersedia."
-  V_NUM=$(npx -y @google/clasp deployments | grep -oE '@[0-9]+' | tr -d '@' | sort -n | tail -n 1)
+  V_NUM=$(npx -y @google/clasp versions | grep -oE '^[0-9]+' | sort -n | tail -n 1)
 fi
 
 echo "Menggunakan versi: @$V_NUM"

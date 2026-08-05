@@ -145,13 +145,21 @@ function getOPDSudahKirim() {
   if (SETTINGS.USE_FIREBASE) {
     const jawabanAll = Firebase.get("jawaban") || {};
     const verifikasiAll = Firebase.get("verifikasi") || {};
+    const statusAll = Firebase.get("status_pengisian") || {};
     
     const opdMap = {};
     
     Object.entries(jawabanAll).forEach(([opd, dataOPD]) => {
       const rawOPD = Firebase.unescapeKey(opd);
-      if (!opdMap[rawOPD]) opdMap[rawOPD] = { totalVar: 0, verifKab: 0, verifProv: 0 };
+      const sData = statusAll[opd];
+      let statusStr = sData ? sData.status : "";
+      if (!statusStr) {
+        statusStr = Object.keys(dataOPD || {}).length >= 11 ? "SUBMITTED" : "DRAFT";
+      }
+      
+      if (!opdMap[rawOPD]) opdMap[rawOPD] = { totalVar: 0, verifKab: 0, verifProv: 0, status: statusStr };
       opdMap[rawOPD].totalVar = Object.keys(dataOPD || {}).length;
+      opdMap[rawOPD].status = statusStr;
     });
     
     Object.entries(verifikasiAll).forEach(([opd, dataOPD]) => {
@@ -167,7 +175,8 @@ function getOPDSudahKirim() {
       opd: opd,
       totalVar: info.totalVar,
       verifKab: info.verifKab,
-      verifProv: info.verifProv
+      verifProv: info.verifProv,
+      status: info.status || "DRAFT"
     }));
   }
 
@@ -180,10 +189,19 @@ function getOPDSudahKirim() {
   const sheetV = ss.getSheetByName("Verifikasi");
   const dataV = (sheetV && sheetV.getLastRow() > 1) ? sheetV.getDataRange().getValues().slice(1) : [];
 
+  const statusSheet = ss.getSheetByName("Status_Pengisian");
+  const statusMap = {};
+  if (statusSheet && statusSheet.getLastRow() > 1) {
+    const sData = statusSheet.getDataRange().getValues().slice(1);
+    sData.forEach(r => { statusMap[r[0]] = r[1]; });
+  }
+
   const opdMap = {};
   dataJ.forEach(r => {
     const opd = r[1];
-    if (!opdMap[opd]) opdMap[opd] = { totalVar: 0, verifKab: 0, verifProv: 0 };
+    const count = dataJ.filter(x => x[1] === opd).length;
+    const statusStr = statusMap[opd] || (count >= 11 ? "SUBMITTED" : "DRAFT");
+    if (!opdMap[opd]) opdMap[opd] = { totalVar: 0, verifKab: 0, verifProv: 0, status: statusStr };
     opdMap[opd].totalVar++;
   });
 
@@ -198,7 +216,8 @@ function getOPDSudahKirim() {
     opd: opd,
     totalVar: info.totalVar,
     verifKab: info.verifKab,
-    verifProv: info.verifProv
+    verifProv: info.verifProv,
+    status: info.status || "DRAFT"
   }));
 }
 
@@ -208,6 +227,11 @@ function getJawabanByOPD(namaOPD) {
     const escapedOPD = Firebase.escapeKey(namaOPD);
     const jawabanOPD = Firebase.get(`jawaban/${escapedOPD}`) || {};
     const verifOPD = Firebase.get(`verifikasi/${escapedOPD}`) || {};
+    const statusData = Firebase.get(`status_pengisian/${escapedOPD}`);
+    let statusStr = statusData ? statusData.status : "";
+    if (!statusStr) {
+      statusStr = Object.keys(jawabanOPD).length >= 11 ? "SUBMITTED" : "DRAFT";
+    }
     
     const items = Object.entries(jawabanOPD).map(([idSoal, j]) => {
       const level = j.level;
@@ -234,7 +258,7 @@ function getJawabanByOPD(namaOPD) {
       return String(a.id_soal).localeCompare(String(b.id_soal), undefined, { numeric: true, sensitivity: 'base' });
     });
     
-    return { items: items };
+    return { items: items, status: statusStr, isFinal: statusStr === "SUBMITTED" };
   }
 
   // Fallback ke Google Sheets
@@ -271,7 +295,17 @@ function getJawabanByOPD(namaOPD) {
     return String(a.id_soal).localeCompare(String(b.id_soal), undefined, { numeric: true, sensitivity: 'base' });
   });
 
-  return { items: items };
+  const statusSheet = ss.getSheetByName("Status_Pengisian");
+  let statusStr = "DRAFT";
+  if (statusSheet && statusSheet.getLastRow() > 1) {
+    const sData = statusSheet.getDataRange().getValues().slice(1);
+    const row = sData.find(r => r[0] === namaOPD);
+    if (row) statusStr = row[1];
+  } else {
+    if (items.length >= 11) statusStr = "SUBMITTED";
+  }
+
+  return { items: items, status: statusStr, isFinal: statusStr === "SUBMITTED" };
 }
 
 function getRekapVerifikasi() {
