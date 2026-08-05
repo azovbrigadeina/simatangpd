@@ -149,21 +149,31 @@ function getOPDSudahKirim() {
     
     const opdMap = {};
     
-    Object.entries(jawabanAll).forEach(([opd, dataOPD]) => {
-      const rawOPD = Firebase.unescapeKey(opd);
-      const sData = statusAll[opd];
+    const allOPDKeys = new Set([
+      ...Object.keys(statusAll),
+      ...Object.keys(jawabanAll),
+      ...Object.keys(verifikasiAll)
+    ]);
+    
+    allOPDKeys.forEach(opdKey => {
+      const rawOPD = Firebase.unescapeKey(opdKey);
+      const dataOPD = jawabanAll[opdKey] || {};
+      const sData = statusAll[opdKey];
       let statusStr = sData ? sData.status : "";
       if (!statusStr) {
         statusStr = Object.keys(dataOPD || {}).length >= 11 ? "SUBMITTED" : "DRAFT";
       }
       
-      if (!opdMap[rawOPD]) opdMap[rawOPD] = { totalVar: 0, verifKab: 0, verifProv: 0, status: statusStr };
-      opdMap[rawOPD].totalVar = Object.keys(dataOPD || {}).length;
-      opdMap[rawOPD].status = statusStr;
+      opdMap[rawOPD] = { 
+        totalVar: Object.keys(dataOPD || {}).length, 
+        verifKab: 0, 
+        verifProv: 0, 
+        status: statusStr 
+      };
     });
     
-    Object.entries(verifikasiAll).forEach(([opd, dataOPD]) => {
-      const rawOPD = Firebase.unescapeKey(opd);
+    Object.entries(verifikasiAll).forEach(([opdKey, dataOPD]) => {
+      const rawOPD = Firebase.unescapeKey(opdKey);
       if (!opdMap[rawOPD]) return;
       Object.values(dataOPD || {}).forEach(r => {
         if (r.skala_evaluator !== "" && r.skala_evaluator !== null && r.skala_evaluator !== undefined) opdMap[rawOPD].verifKab++;
@@ -183,9 +193,7 @@ function getOPDSudahKirim() {
   // Fallback ke Google Sheets
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetJ = ss.getSheetByName("Jawaban");
-  if (sheetJ.getLastRow() < 2) return [];
-
-  const dataJ = sheetJ.getDataRange().getValues().slice(1);
+  const dataJ = (sheetJ && sheetJ.getLastRow() > 1) ? sheetJ.getDataRange().getValues().slice(1) : [];
   const sheetV = ss.getSheetByName("Verifikasi");
   const dataV = (sheetV && sheetV.getLastRow() > 1) ? sheetV.getDataRange().getValues().slice(1) : [];
 
@@ -197,11 +205,16 @@ function getOPDSudahKirim() {
   }
 
   const opdMap = {};
+
+  Object.entries(statusMap).forEach(([opd, statusStr]) => {
+    opdMap[opd] = { totalVar: 0, verifKab: 0, verifProv: 0, status: statusStr };
+  });
+
   dataJ.forEach(r => {
     const opd = r[1];
-    const count = dataJ.filter(x => x[1] === opd).length;
-    const statusStr = statusMap[opd] || (count >= 11 ? "SUBMITTED" : "DRAFT");
-    if (!opdMap[opd]) opdMap[opd] = { totalVar: 0, verifKab: 0, verifProv: 0, status: statusStr };
+    if (!opdMap[opd]) {
+      opdMap[opd] = { totalVar: 0, verifKab: 0, verifProv: 0, status: statusMap[opd] || "DRAFT" };
+    }
     opdMap[opd].totalVar++;
   });
 
@@ -433,6 +446,7 @@ function hapusJawabanOPD(namaOPD) {
     const opd = Firebase.escapeKey(namaOPD.toString().trim());
     Firebase.remove(`jawaban/${opd}`);
     Firebase.remove(`verifikasi/${opd}`);
+    Firebase.remove(`status_pengisian/${opd}`);
     try {
       CacheService.getScriptCache().remove("dashboard_stats");
     } catch(e) {}
@@ -441,14 +455,14 @@ function hapusJawabanOPD(namaOPD) {
 
   // Fallback ke Sheets
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  ["Jawaban", "Verifikasi"].forEach(shName => {
+  ["Jawaban", "Verifikasi", "Status_Pengisian"].forEach(shName => {
     let sh = ss.getSheetByName(shName);
     if (!sh) return;
     let d = sh.getDataRange().getValues();
     if (d.length < 2) return;
     
     const header = d[0];
-    const filtered = d.slice(1).filter(row => row[1] !== namaOPD);
+    const filtered = d.slice(1).filter(row => row[0] !== namaOPD && row[1] !== namaOPD);
     
     sh.clearContents();
     if (filtered.length > 0) {

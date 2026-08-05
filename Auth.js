@@ -17,12 +17,19 @@ function prosesLogin(username, password) {
         if (role === "Responden") {
           const escapedOPD = Firebase.escapeKey(nama_opd);
           const statusData = Firebase.get(`status_pengisian/${escapedOPD}`);
+          const jawabanOPD = Firebase.get(`jawaban/${escapedOPD}`);
+          const jawabanCount = jawabanOPD ? Object.keys(jawabanOPD).length : 0;
+          
           if (statusData && statusData.status === "SUBMITTED") {
-            sudahIsi = true;
+            if (jawabanCount === 0) {
+              Firebase.remove(`status_pengisian/${escapedOPD}`);
+              sudahIsi = false;
+            } else {
+              sudahIsi = true;
+            }
           } else if (!statusData) {
             // Legacy check: jika node status_pengisian belum ada
-            const jawabanOPD = Firebase.get(`jawaban/${escapedOPD}`);
-            if (jawabanOPD && Object.keys(jawabanOPD).length >= 11) {
+            if (jawabanCount >= 11) {
               sudahIsi = true;
             }
           }
@@ -54,20 +61,26 @@ function prosesLogin(username, password) {
       
       let sudahIsi = false;
       if (role === "Responden") {
+        const jawabanSheet = ss.getSheetByName("Jawaban");
+        let count = 0;
+        if (jawabanSheet && jawabanSheet.getLastRow() > 1) {
+          const dataJawaban = jawabanSheet.getDataRange().getValues();
+          count = dataJawaban.filter(row => row[1] === nama_opd).length;
+        }
+
         const statusSheet = ss.getSheetByName("Status_Pengisian");
         if (statusSheet && statusSheet.getLastRow() > 1) {
           const sData = statusSheet.getDataRange().getValues();
           const row = sData.find(r => r[0] === nama_opd);
           if (row && row[1] === "SUBMITTED") {
-            sudahIsi = true;
+            if (count === 0) {
+              sudahIsi = false;
+            } else {
+              sudahIsi = true;
+            }
           }
         } else {
-          const jawabanSheet = ss.getSheetByName("Jawaban");
-          if (jawabanSheet && jawabanSheet.getLastRow() > 1) {
-            const dataJawaban = jawabanSheet.getDataRange().getValues();
-            const count = dataJawaban.filter(row => row[1] === nama_opd).length;
-            if (count >= 11) sudahIsi = true;
-          }
+          if (count >= 11) sudahIsi = true;
         }
       }
 
