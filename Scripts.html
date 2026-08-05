@@ -301,9 +301,9 @@
     </div>
     
     <div class="brut-card bg-white">
-      <label class="fw-bold mb-2" id="link-label">LINK GOOGLE SPREADSHEET (BUKTI DUKUNG):</label>
+      <label class="fw-bold mb-2" id="link-label">LINK GOOGLE DRIVE (BUKTI DUKUNG):</label>
       <input type="url" class="form-control" id="inp-link" 
-             placeholder="https://docs.google.com/spreadsheets/d/..." 
+             placeholder="https://drive.google.com/..." 
              value="${ans[varId].link}" 
              oninput="ans['${varId}'].link = this.value; upP();">
     </div>
@@ -352,7 +352,7 @@
     if (!l || typeof l !== 'string') return false;
     const str = l.trim().toLowerCase();
     return (str.startsWith('http://') || str.startsWith('https://')) && 
-           (str.includes('docs.google.com/spreadsheets') || str.includes('spreadsheets.google.com')); 
+           (str.includes('drive.google.com') || str.includes('docs.google.com') || str.includes('spreadsheets.google.com')); 
   }
 
   function isExempted(varId, lvl) {
@@ -387,11 +387,11 @@
     const labelEl = document.getElementById('link-label');
     const inputEl = document.getElementById('inp-link');
     if (isExempted(varId, lvl)) {
-      if (labelEl) labelEl.innerHTML = 'LINK GOOGLE SPREADSHEET (BUKTI DUKUNG): <span class="badge bg-success ms-2">OPSIONAL / TIDAK WAJIB</span>';
-      if (inputEl) inputEl.placeholder = "Pilihan ini tidak wajib melampirkan link (jika diisi wajib Google Spreadsheet).";
+      if (labelEl) labelEl.innerHTML = 'LINK GOOGLE DRIVE (BUKTI DUKUNG): <span class="badge bg-success ms-2">OPSIONAL / TIDAK WAJIB</span>';
+      if (inputEl) inputEl.placeholder = "Pilihan ini tidak wajib melampirkan link.";
     } else {
-      if (labelEl) labelEl.innerHTML = 'LINK GOOGLE SPREADSHEET (BUKTI DUKUNG): <span class="badge bg-danger ms-2">WAJIB SPREADSHEET</span>';
-      if (inputEl) inputEl.placeholder = "https://docs.google.com/spreadsheets/d/...";
+      if (labelEl) labelEl.innerHTML = 'LINK GOOGLE DRIVE (BUKTI DUKUNG): <span class="badge bg-danger ms-2">WAJIB GOOGLE DRIVE</span>';
+      if (inputEl) inputEl.placeholder = "https://drive.google.com/...";
     }
   }
 
@@ -413,23 +413,23 @@
         return Swal.fire({
           icon: 'warning',
           title: 'LINK KOSONG',
-          text: 'Silakan lampirkan link Google Spreadsheet sebagai bukti dukung.',
+          text: 'Silakan lampirkan link Google Drive sebagai bukti dukung.',
           confirmButtonColor: '#000'
         });
       }
       if(!isV(a.link.trim())) {
         return Swal.fire({
           icon: 'warning',
-          title: 'LINK HARUS GOOGLE SPREADSHEET',
-          text: 'Bukti dukung WAJIB berupa link Google Spreadsheet yang valid (contoh: https://docs.google.com/spreadsheets/d/...).',
+          title: 'LINK HARUS GOOGLE DRIVE',
+          text: 'Bukti dukung WAJIB berupa link Google Drive / Docs yang valid (contoh: https://drive.google.com/... atau https://docs.google.com/...).',
           confirmButtonColor: '#000'
         });
       }
     } else if (a.link && a.link.trim() && !isV(a.link.trim())) {
       return Swal.fire({
         icon: 'warning',
-        title: 'LINK HARUS GOOGLE SPREADSHEET',
-        text: 'Jika diisi, link bukti dukung WAJIB berupa link Google Spreadsheet yang valid (contoh: https://docs.google.com/spreadsheets/d/...).',
+        title: 'LINK HARUS GOOGLE DRIVE',
+        text: 'Jika diisi, link bukti dukung WAJIB berupa link Google Drive / Docs yang valid (contoh: https://drive.google.com/... atau https://docs.google.com/...).',
         confirmButtonColor: '#000'
       });
     }
