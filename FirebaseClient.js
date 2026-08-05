@@ -85,6 +85,10 @@ const Firebase = {
     return JSON.parse(response.getContentText());
   },
 
+  set: function(path, data) {
+    return this.put(path, data);
+  },
+
   /**
    * Memperbarui sebagian data di path tertentu tanpa menimpa data lainnya
    * @param {string} path - Path database

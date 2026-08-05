@@ -59,7 +59,7 @@ function simpanSemuaJawaban(payload) {
       Firebase.patch(`jawaban/${opd}`, updates);
     }
     
-    Firebase.set(`status_pengisian/${opd}`, {
+    Firebase.put(`status_pengisian/${opd}`, {
       status: isFinal ? "SUBMITTED" : "DRAFT",
       updated_at: ts
     });
