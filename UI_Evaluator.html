@@ -1,16 +1,36 @@
-<div id="p-eval" class="hidden" style="display: flex; flex: 1;">
-  <div class="sidebar d-flex flex-column">
-    <h3 class="fw-bold mb-4 border-bottom border-3 border-black pb-2 text-center">ADMIN</h3>
-    <div class="nav flex-column gap-2" role="tablist">
-      <button id="menu-dashboard" class="btn btn-brut active text-start" data-bs-toggle="pill" data-bs-target="#t-stat" onclick="loadStats()"><i class="bi bi-speedometer2 me-2"></i> DASHBOARD</button>
-      <button id="menu-verif" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-verif" onclick="initV()"><i class="bi bi-clipboard-check me-2"></i> VERIFIKASI</button>
-      <button id="menu-hasil" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-hasil" onclick="loadHasil()"><i class="bi bi-file-earmark-bar-graph me-2"></i> REKAP NILAI</button>
-      <button id="menu-soal" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-soal" onclick="loadMasterSoal()"><i class="bi bi-database me-2"></i> MASTER SOAL</button>
-      <button id="menu-user" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-user" onclick="loadMasterUser()"><i class="bi bi-people me-2"></i> DATA USER</button>
-      <button id="menu-setting" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-setting" onclick="loadPengaturan()"><i class="bi bi-gear-fill me-2"></i> SETTING</button>
+<div id="p-eval" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
+  <!-- Mobile Topbar for Evaluator -->
+  <div class="eval-mobile-header d-flex align-items-center justify-content-between p-3 border-bottom border-4 border-black d-lg-none" style="background: var(--accent); position: sticky; top: 0; z-index: 1030; box-shadow: var(--brut-shadow-sm);">
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-brut p-2 lh-1" onclick="toggleSidebar()" aria-label="Toggle Menu">
+        <i class="bi bi-list fs-4"></i>
+      </button>
+      <span class="fw-bold fs-6 text-uppercase" id="eval-mobile-title">ADMIN EVALUATOR</span>
     </div>
-    <div class="mt-auto"><hr class="border-2 border-black"><button class="btn btn-brut btn-brut-pink w-100" onclick="window.top.location.href = 'https://bagorsetdamuarojambi.blogspot.com/'">LOGOUT</button></div>
+    <span class="badge bg-black text-white px-2 py-1">SIMATANG</span>
   </div>
+
+  <!-- Backdrop for Mobile Drawer -->
+  <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="closeSidebar()"></div>
+
+  <div class="d-flex flex-1" style="flex: 1; min-height: 100vh;">
+    <div id="eval-sidebar" class="sidebar d-flex flex-column">
+      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-3 border-black pb-2">
+        <h3 class="fw-bold m-0 text-center flex-grow-1">ADMIN</h3>
+        <button class="btn btn-sm btn-brut btn-brut-pink d-lg-none ms-2 px-2 py-1" onclick="closeSidebar()" aria-label="Tutup Menu">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="nav flex-column gap-2" role="tablist">
+        <button id="menu-dashboard" class="btn btn-brut active text-start" data-bs-toggle="pill" data-bs-target="#t-stat" onclick="loadStats(); closeSidebar();"><i class="bi bi-speedometer2 me-2"></i> DASHBOARD</button>
+        <button id="menu-verif" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-verif" onclick="initV(); closeSidebar();"><i class="bi bi-clipboard-check me-2"></i> VERIFIKASI</button>
+        <button id="menu-hasil" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-hasil" onclick="loadHasil(); closeSidebar();"><i class="bi bi-file-earmark-bar-graph me-2"></i> REKAP NILAI</button>
+        <button id="menu-soal" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-soal" onclick="loadMasterSoal(); closeSidebar();"><i class="bi bi-database me-2"></i> MASTER SOAL</button>
+        <button id="menu-user" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-user" onclick="loadMasterUser(); closeSidebar();"><i class="bi bi-people me-2"></i> DATA USER</button>
+        <button id="menu-setting" class="btn btn-brut text-start" data-bs-toggle="pill" data-bs-target="#t-setting" onclick="loadPengaturan(); closeSidebar();"><i class="bi bi-gear-fill me-2"></i> SETTING</button>
+      </div>
+      <div class="mt-auto"><hr class="border-2 border-black"><button class="btn btn-brut btn-brut-pink w-100" onclick="window.top.location.href = 'https://bagorsetdamuarojambi.blogspot.com/'">LOGOUT</button></div>
+    </div>
   
   <div class="content">
     <div class="tab-content">
@@ -120,19 +140,21 @@
       <div class="tab-pane fade" id="t-hasil">
         <h4 class="fw-bold mb-4">Rekapitulasi Hasil</h4>
         <div class="brut-card p-0 overflow-hidden">
-          <table class="table table-hover mb-0">
-            <thead class="bg-black text-white text-center">
-              <tr>
-                <th class="text-start px-3">Nama OPD</th>
-                <th>Total Nilai (Mandiri)</th>
-                <th>Total Nilai (Kabupaten)</th>
-                <th>Total Nilai (Provinsi)</th>
-                <th>Level Kematangan</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="h-body"></tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="bg-black text-white text-center">
+                <tr>
+                  <th class="text-start px-3">Nama OPD</th>
+                  <th>Total Nilai (Mandiri)</th>
+                  <th>Total Nilai (Kabupaten)</th>
+                  <th>Total Nilai (Provinsi)</th>
+                  <th>Level Kematangan</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="h-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
       
@@ -147,7 +169,8 @@
           </div>
           <div class="p-3">
             <p class="small text-muted mb-3">Tentukan apakah link bukti dukung <strong>wajib diisi</strong> oleh responden untuk masing-masing tingkat kematangan soal. Hilangkan centang untuk mengecualikan:</p>
-            <table class="table small table-hover align-middle">
+            <div class="table-responsive">
+              <table class="table small table-hover align-middle">
               <thead>
                 <tr>
                   <th>Aspek</th>
@@ -160,6 +183,7 @@
               </thead>
               <tbody id="soal-body"></tbody>
             </table>
+            </div>
           </div>
         </div>
       </div>
@@ -223,7 +247,7 @@
           <div class="p-3 bg-light fw-bold border-bottom border-2 border-black">
             <i class="bi bi-list-check me-1"></i> DAFTAR PERIODE AKTIF
           </div>
-          <div>
+          <div class="table-responsive">
             <table class="table table-hover mb-0 small">
               <thead class="table-light text-center">
                 <tr>
@@ -245,3 +269,4 @@
     </div>
   </div>
 </div>
+

@@ -1,0 +1,995 @@
+{
+  "catatan_komponen": {
+    "Dinas Kesehatan": {
+      "ai_p": "PL 2",
+      "ai_r": "RK 2",
+      "ep_p": "PL 4",
+      "ep_r": "RK 4",
+      "pm_p": "PL 3",
+      "pm_r": "RK 3",
+      "pt_p": "PL 1",
+      "pt_r": "RK 1"
+    }
+  },
+  "jawaban": {
+    "Dinas Percubaan": {
+      "V1": {
+        "level": 2,
+        "link": "https://drive.google.com/drive/folders/1_sFSXRsfR_avSRjgpQrLbky48tV81Jgr",
+        "timestamp": "2026-05-18T04:40:52.127Z"
+      },
+      "V10": {
+        "level": 3,
+        "link": "https://drive.google.com/drive/folders/1_sFSXRsfR_avSRjgpQrLbky48tV81Jgr",
+        "timestamp": "2026-05-18T04:40:52.127Z"
+      },
+      "V11": {
+        "level": 2,
+        "link": "https://drive.google.com/drive/folders/1_sFSXRsfR_avSRjgpQrLbky48tV81Jgr",
+        "timestamp": "2026-05-18T04:40:52.127Z"
+      },
+      "V2": {
+        "level": 5,
+        "link": "https://drive.google.com/drive/folders/1_sFSXRsfR_avSRjgpQrLbky48tV81Jgr",
+        "timestamp": "2026-05-18T04:40:52.127Z"
+      },
+      "V3": {
+        "level": 4,
+        "link": "https://drive.google.com/drive/folders/1_sFSXRsfR_avSRjgpQrLbky48tV81Jgr",
+        "timestamp": "2026-05-18T04:40:52.127Z"
+      },
+      "V4": {
+        "level": 2,
+        "link": "https://drive.google.com/drive/folders/1_sFSXRsfR_avSRjgpQrLbky48tV81Jgr",
+        "timestamp": "2026-05-18T04:40:52.127Z"
+      },
+      "V5": {
+        "level": 1,
+        "link": "https://drive.google.com/drive/folders/1_sFSXRsfR_avSRjgpQrLbky48tV81Jgr",
+        "timestamp": "2026-05-18T04:40:52.127Z"
+      },
+      "V6": {
+        "level": 2,
+        "link": "https://drive.google.com/drive/folders/1_sFSXRsfR_avSRjgpQrLbky48tV81Jgr",
+        "timestamp": "2026-05-18T04:40:52.127Z"
+      },
+      "V7": {
+        "level": 5,
+        "link": "https://drive.google.com/drive/folders/1_sFSXRsfR_avSRjgpQrLbky48tV81Jgr",
+        "timestamp": "2026-05-18T04:40:52.127Z"
+      },
+      "V8": {
+        "level": 4,
+        "link": "https://drive.google.com/drive/folders/1_sFSXRsfR_avSRjgpQrLbky48tV81Jgr",
+        "timestamp": "2026-05-18T04:40:52.127Z"
+      },
+      "V9": {
+        "level": 3,
+        "link": "https://drive.google.com/drive/folders/1_sFSXRsfR_avSRjgpQrLbky48tV81Jgr",
+        "timestamp": "2026-05-18T04:40:52.127Z"
+      }
+    }
+  },
+  "master_opd": [
+    "Sekretariat Daerah",
+    "Sekretariat Dewan Perwakilan Rakyat Daerah",
+    "Dinas Pendidikan dan Kebudayaan",
+    "Dinas Pariwisata, Kepemudaan dan Olahraga",
+    "Dinas Kesehatan",
+    "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak",
+    "Dinas Pengendalian Penduduk dan Keluarga Berencana",
+    "Dinas Kependudukan dan Pencatatan Sipil",
+    "Dinas Pemberdayaan Masyarakat dan Desa",
+    "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu",
+    "Dinas Koperasi, Usaha Kecil Menengah, Perindustrian dan Perdagangan",
+    "Dinas Tenaga Kerja dan Transmigrasi",
+    "Dinas Komunikasi dan Informatika",
+    "Dinas Perumahan Dan Kawasan Permukiman",
+    "Dinas Pekerjaan Umum dan Penataan Ruang",
+    "Dinas Perhubungan",
+    "Dinas Lingkungan Hidup",
+    "Dinas Tanaman Pangan dan Hortikultura",
+    "Dinas Ketahanan Pangan",
+    "Dinas Perkebunan dan Peternakan",
+    "Dinas Perikanan",
+    "Dinas Perpustakaan dan Arsip Daerah",
+    "Dinas Pemadam Kebakaran dan Penyelamatan",
+    "Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah",
+    "Badan Kepegawaian dan Pengembangan Sumber Daya Manusia",
+    "Badan Pengelola Keuangan dan Aset Daerah",
+    "Badan Pengelola Pajak dan Retribusi Daerah",
+    "Badan Penanggulangan Bencana Daerah",
+    "Inspektorat Daerah",
+    "Bakesbangpol",
+    "Satuan Polisi Pamong Praja",
+    "Kecamatan Bahar Selatan",
+    "Kecamatan Bahar Utara",
+    "Kecamatan Jambi Luar Kota",
+    "Kecamatan Taman Rajo",
+    "Kecamatan Kumpeh",
+    "Kecamatan Kumpeh Ulu",
+    "Kecamatan Maro Sebo",
+    "Kecamatan Mestong",
+    "Kecamatan Sekernan",
+    "Kecamatan Sungai Bahar",
+    "Kecamatan Sungai Gelam",
+    "Dinas Percubaan",
+    "Biro Organisasi Setda Provinsi Jambi"
+  ],
+  "master_pertanyaan": {
+    "V10_1": {
+      "bobot": 1,
+      "id_soal": "V10",
+      "indikator": "Belum ada rencana pengembangan produk yang akan dilakukan secara sistematis.",
+      "kolom5": "Tanpa rencana pengembangan sistematis",
+      "kolom6": "Tidak ada dokumen yang dipersyaratkan",
+      "level": 1,
+      "no": "P46",
+      "pertanyaan": "10. Pengembangan Inovasi Layanan Perangkat Daerah"
+    },
+    "V10_2": {
+      "bobot": 2,
+      "id_soal": "V10",
+      "indikator": "Pengembangan produk dilakukan dengan mengadopsi inovasi yang dikembangkan oleh daerah lain (replikasi inovasi).",
+      "kolom5": "Ada adopsi/ replikasi inovasi daerah lain",
+      "kolom6": "Dokumen proposal inovasi\nscreen shot aplikasi inovasi, dan lain-lain",
+      "level": 2,
+      "no": "P47",
+      "pertanyaan": "10. Pengembangan Inovasi Layanan Perangkat Daerah"
+    },
+    "V10_3": {
+      "bobot": 3,
+      "id_soal": "V10",
+      "indikator": "Telah disusun rencana pengembangan inovasi baik jenis, mutu maupun metodenya.",
+      "kolom5": "Ada rencana pengembangan inovasi (jenis, mutu, metode) secara parsial",
+      "kolom6": "Dokumen proposal inovasi\nscreen shot aplikasi inovasi, dan lain-lain\nDokumen daftar adopsi/ replikasi inovasi",
+      "level": 3,
+      "no": "P48",
+      "pertanyaan": "10. Pengembangan Inovasi Layanan Perangkat Daerah"
+    },
+    "V10_4": {
+      "bobot": 4,
+      "id_soal": "V10",
+      "indikator": "Telah ada inovasi yang dikembangkan sendiri oleh perangkat daerah yang bersangkutan.",
+      "kolom5": "Ada pengembangan inovasi secara mandiri (lokal)",
+      "kolom6": "Dokumen proposal inovasi\nscreen shot aplikasi inovasi, dan lain-lain\nDokumen daftar adopsi/ replikasi inovasi\nDokumen daftar invensi (temuan) inovasi lokal",
+      "level": 4,
+      "no": "P49",
+      "pertanyaan": "10. Pengembangan Inovasi Layanan Perangkat Daerah"
+    },
+    "V10_5": {
+      "bobot": 5,
+      "id_soal": "V10",
+      "indikator": "Perangkat daerah sudah mempunyai program pengkajian dan inovasi secara terencana dan berkelanjutan.",
+      "kolom5": "Ada program pengkajian dan rencana inovasi berkelanjutan (komprehensif)",
+      "kolom6": "Dokumen proposal inovasi\nscreen shot aplikasi inovasi, dan lain-lain\nDokumen daftar adopsi/ replikasi inovasi\nDokumen daftar invensi (temuan) inovasi lokal\nDokumen roadmap pengembangan inovasi, SK Tim Inovasi (kegiatan dan hasil)",
+      "level": 5,
+      "no": "P50",
+      "pertanyaan": "10. Pengembangan Inovasi Layanan Perangkat Daerah"
+    },
+    "V11_1": {
+      "bobot": 1,
+      "id_soal": "V11",
+      "indikator": "Belum ada budaya organisasi pada perangkat daerah.",
+      "kolom5": "Tanpa praktik budaya organisasi secara spesifik",
+      "kolom6": "Tidak ada dokumen yang dipersyaratkan",
+      "level": 1,
+      "no": "P51",
+      "pertanyaan": "11. Budaya Organisasi Perangkat Daerah"
+    },
+    "V11_2": {
+      "bobot": 2,
+      "id_soal": "V11",
+      "indikator": "Sudah ada slogan-slogan yang menggambarkan nilai organisasi pada perangkat daerah yang bersangkutan.",
+      "kolom5": "Ada slogan nilai organisasi",
+      "kolom6": "Dokumen slogan organisasi tertuang dalam bentuk media cetak dan non cetak",
+      "level": 2,
+      "no": "P52",
+      "pertanyaan": "11. Budaya Organisasi Perangkat Daerah"
+    },
+    "V11_3": {
+      "bobot": 3,
+      "id_soal": "V11",
+      "indikator": "Sudah ada dokumen budaya organisasi yang resmi menggambarkan nilai-nilai, sikap dan perilaku di perangkat daerah yang bersangkutan.",
+      "kolom5": "Ada dokumen resmi nilai, sikap, perilaku",
+      "kolom6": "Dokumen slogan organisasi tertuang dalam bentuk media cetak dan non cetak\nDokumen SK Penetapan Nilai Budaya Organisasi, SK KBK/ GKM, SK Agent of Change, dan lain-lain",
+      "level": 3,
+      "no": "P53",
+      "pertanyaan": "11. Budaya Organisasi Perangkat Daerah"
+    },
+    "V11_4": {
+      "bobot": 4,
+      "id_soal": "V11",
+      "indikator": "Sudah ada program internalisasi budaya organisasi yang berkelanjutan berdasarkan dokumen resmi.",
+      "kolom5": "Ada dokumen resmi program internalisasi budaya organisasi berkelanjutan",
+      "kolom6": "Dokumen slogan organisasi tertuang dalam bentuk media cetak dan non cetak\nDokumen SK Penetapan Nilai Budaya Organisasi, SK KBK/ GKM, SK Agent of Change, dan lain-lain\nDokumen rencana (program) pengembangan budaya organisasi, kegiatan sosialisasi, sarasehan, expo, bintek, lomba, dan ain-lain",
+      "level": 4,
+      "no": "P54",
+      "pertanyaan": "11. Budaya Organisasi Perangkat Daerah"
+    },
+    "V11_5": {
+      "bobot": 5,
+      "id_soal": "V11",
+      "indikator": "Budaya organisasi sudah tercermin dalam sikap dan perilaku pegawai pada perangkat daerah yang bersangkutan berdasarkan hasil evaluasi secara rutin dan berkelanjutan.",
+      "kolom5": "Ada budaya organisasi yang terbentuk, melalui evaluasi rutin berkala",
+      "kolom6": "Dokumen slogan organisasi tertuang dalam bentuk media cetak dan non cetak\nDokumen SK Penetapan Nilai Budaya Organisasi, SK KBK/ GKM, SK Agent of Change, dan lain-lain\nDokumen rencana (program) pengembangan budaya organisasi, kegiatan sosialisasi, sarasehan, expo, bintek, lomba, dan ain-lain\nDokumen monev budaya organisasi (kinerja KBK/GKM, Agent of Change), Lomba Budaya Kerja, pelaksanaan rekomendasi dan tindak lanjut evaluasi",
+      "level": 5,
+      "no": "P55",
+      "pertanyaan": "11. Budaya Organisasi Perangkat Daerah"
+    },
+    "V1_1": {
+      "bobot": 1,
+      "id_soal": "V1",
+      "indikator": "Penentuan kegiatan diprioritaskan dalam dokumen perencanaan tahunan (Renja/RKPD) dilakukan tanpa ada kriteria yang terukur.",
+      "kolom5": "Tanpa kriteria terukur dalam penentuan kegiatan prioritas",
+      "kolom6": "Dokumen Renja dan RKA",
+      "level": 1,
+      "no": "P1",
+      "pertanyaan": "1. Perencanaan Pembangunan Daerah"
+    },
+    "V1_2": {
+      "bobot": 2,
+      "id_soal": "V1",
+      "indikator": "Penentuan kegiatan yang diprioritaskan dalam dokumen rencana tahunan dilakukan berdasarkan analisis terhadap hasil (outcome) apa yang akan dicapai kegiatan tersebut.",
+      "kolom5": "Analisis keterkaitan hasil kegiatan prioritas (jumlah indikator outcome yang terkait)",
+      "kolom6": "Dokumen Renja dan RKA Dokumen Rancangan awal Renja dan RKA Berbasis Sub Sub Kegiatan",
+      "level": 2,
+      "no": "P2",
+      "pertanyaan": "1. Perencanaan Pembangunan Daerah"
+    },
+    "V1_3": {
+      "bobot": 3,
+      "id_soal": "V1",
+      "indikator": "Penentuan prioritas kegiatan dalam dokumen rencana tahunan dilakukan berdasarkan analisis hasil (outcome) dan analisis kemampuan kegiatan menghasilkan hasil (outcome)",
+      "kolom5": "Analisis ketercapaian keluaran (output) terhadap hasil (outcome)",
+      "kolom6": "Dokumen Renja dan RKA Dokumen Rancangan awal Renja dan RKA Berbasis Sub Sub Kegiatan",
+      "level": 3,
+      "no": "P3",
+      "pertanyaan": "1. Perencanaan Pembangunan Daerah"
+    },
+    "V1_4": {
+      "bobot": 4,
+      "id_soal": "V1",
+      "indikator": "Penentuan prioritas kegiatan dilakukan berdasarkan analisis yang membandingkan hasil (outcome) yang akan dicapai antara satu alternatif kegiatan dengan alternatif kegiatan yang lain.",
+      "kolom5": "Analisis komparasi ketercapaian hasil kegiatan prioritas (komparasi ketercapaian indikator outcome antar kegiatan)",
+      "kolom6": "Dokumen Renja dan RKA\nDokumen Rancangan awal Renja dan RKA Berbasis Sub Sub Kegiatan\nDokumen Renja berbasis Renstra (Renja kegiatan setahun, kegiatan tersebut ada di Renstra)\nDokumen cascading (kertas kerja/pohon kinerja)",
+      "level": 4,
+      "no": "P4",
+      "pertanyaan": "1. Perencanaan Pembangunan Daerah"
+    },
+    "V1_5": {
+      "bobot": 5,
+      "id_soal": "V1",
+      "indikator": "Penentuan prioritas kegiatan dalam dokumen tahunan dilakukan dengan perbandingan hasil (outcome) antara satu alternatif kegiatan dengan alternatif kegiatan yang lain dan dibantu dengan teknologi informasi.",
+      "kolom5": "Penerapan aplikasi penunjang e-planning",
+      "kolom6": "Dokumen Renja dan RKA\nDokumen Rancangan awal Renja dan RKA Berbasis Sub Sub Kegiatan\nDokumen Renja berbasis Renstra (Renja kegiatan setahun, kegiatan tersebut ada di Renstra)\nDokumen cascading (kertas kerja/pohon kinerja)\nDokumen screen shot aplikasi, manual aplikasi.",
+      "level": 5,
+      "no": "P5",
+      "pertanyaan": "1. Perencanaan Pembangunan Daerah"
+    },
+    "V2_1": {
+      "bobot": 1,
+      "id_soal": "V2",
+      "indikator": "Monitoring dan pengendalian dilakukan dengan cara sederhana dan tidak terstruktur.",
+      "kolom5": "Ada monitoring sederhana tidak terstruktur",
+      "kolom6": "Dokumen undangan, daftar hadir dan notulensi rapat monitoring",
+      "level": 1,
+      "no": "P6",
+      "pertanyaan": "2. Monitoring dan Pengendalian Pelaksanaan Tugas Perangkat Daerah"
+    },
+    "V2_2": {
+      "bobot": 2,
+      "id_soal": "V2",
+      "indikator": "Monitoring dan pengendalian dilakukan secara berkala dengan fokus yang ditentukan.",
+      "kolom5": "Monitoring terjadwal/berkala dengan fokus tertentu",
+      "kolom6": "Dokumen undangan, daftar hadir dan notulensi rapat monitoring\nDokumen regulasi monitoring (waktu dan muatan), hasil monitoring (print-out realisasi fisik, keuangan dan kinerja)",
+      "level": 2,
+      "no": "P7",
+      "pertanyaan": "2. Monitoring dan Pengendalian Pelaksanaan Tugas Perangkat Daerah"
+    },
+    "V2_3": {
+      "bobot": 3,
+      "id_soal": "V2",
+      "indikator": "Monitoring dan pengendalian dilakukan secara berkala dengan kriteria penyimpangan yang terstandarisasi pada setiap tahap kegiatan.",
+      "kolom5": "Kriteria terstandar untuk monitoring berbeda menurut kegiatan",
+      "kolom6": "Dokumen undangan, daftar hadir dan notulensi rapat monitoring\nDokumen regulasi monitoring (waktu dan muatan), hasil monitoring (print-out realisasi fisik, keuangan dan kinerja)\nDokumen capaian realisasi fisik kegiatan ≤-5% dengan dilengkapi dokumen tindak lanjut",
+      "level": 3,
+      "no": "P8",
+      "pertanyaan": "2. Monitoring dan Pengendalian Pelaksanaan Tugas Perangkat Daerah"
+    },
+    "V2_4": {
+      "bobot": 4,
+      "id_soal": "V2",
+      "indikator": "Monitoring dan pengendalian dilakukan secara berkala dengan kriteria penyimpangan yang terstandarisasi dan diikuti dengan umpan balik berupa perbaikan yang terdokumentasi dengan baik.",
+      "kolom5": "Rekomendasi ditindaklanjuti, plus bukti perbaikan",
+      "kolom6": "Dokumen undangan, daftar hadir dan notulensi rapat monitoring\nDokumen regulasi monitoring (waktu dan muatan), hasil monitoring (print-out realisasi fisik, keuangan dan kinerja)\nDokumen capaian realisasi fisik kegiatan ≤-5% dengan dilengkapi dokumen tindak lanjut\nDokumen hasil tindak lanjut monitoring (laporan kepada Pimpinan berupa telaah/ laporan, dokumen paket kegiatan yang tidak bisa dilaksanakan)",
+      "level": 4,
+      "no": "P9",
+      "pertanyaan": "2. Monitoring dan Pengendalian Pelaksanaan Tugas Perangkat Daerah"
+    },
+    "V2_5": {
+      "bobot": 5,
+      "id_soal": "V2",
+      "indikator": "Monitoring dan pengendalian dilakukan secara sistematis, terstandarisasi termasuk umpan balik yang didukung oleh penggunaan teknologi informasi berbasis internet",
+      "kolom5": "Aplikasi penunjang e-controling",
+      "kolom6": "Dokumen undangan, daftar hadir dan notulensi rapat monitoring\nDokumen regulasi monitoring (waktu dan muatan), hasil monitoring (print-out realisasi fisik, keuangan dan kinerja)\nDokumen capaian realisasi fisik kegiatan ≤-5% dengan dilengkapi dokumen tindak lanjut\nDokumen hasil tindak lanjut monitoring (laporan kepada Pimpinan berupa telaah/ laporan, dokumen paket kegiatan yang tidak bisa dilaksanakan)\nDokumen screen shot aplikasi, manual aplikasi.",
+      "level": 5,
+      "no": "P10",
+      "pertanyaan": "2. Monitoring dan Pengendalian Pelaksanaan Tugas Perangkat Daerah"
+    },
+    "V3_1": {
+      "bobot": 1,
+      "id_soal": "V3",
+      "indikator": "Tidak ada penjaminan mutu atas produk yang dihasilkan dan atas proses kerja yang dilakukan",
+      "kolom5": "Tanpa praktik penjaminan mutu",
+      "kolom6": "Tidak ada dokumen yang dipersyaratkan",
+      "level": 1,
+      "no": "P11",
+      "pertanyaan": "3. Penjaminan Mutu Layanan Perangkat Daerah"
+    },
+    "V3_2": {
+      "bobot": 2,
+      "id_soal": "V3",
+      "indikator": "Penjaminan mutu produk dan proses kerja dilakukan secara berkala namun tidak mempunyai - 15 - standar mutu produk dan proses yang ditetapkan",
+      "kolom5": "Penjaminan mutu berkala, tanpa standar",
+      "kolom6": "Dokumen paraf pelaksanaan tugas/kegiatan, telaah staf, rapat teknis internal",
+      "level": 2,
+      "no": "P12",
+      "pertanyaan": "3. Penjaminan Mutu Layanan Perangkat Daerah"
+    },
+    "V3_3": {
+      "bobot": 3,
+      "id_soal": "V3",
+      "indikator": "Mutu produk dan proses sudah distandarisasi dan dilakukan pengujian secara berkala secara internal.",
+      "kolom5": "Penjaminan mutu berkala internal berstandar dengan pengujian berkala",
+      "kolom6": "Dokumen paraf pelaksanaan tugas/kegiatan, telaah staf, rapat teknis internal\nDokumen SPP, SOP, rapat teknis internal, hasil evaluasi, second opinion ahli",
+      "level": 3,
+      "no": "P13",
+      "pertanyaan": "3. Penjaminan Mutu Layanan Perangkat Daerah"
+    },
+    "V3_4": {
+      "bobot": 4,
+      "id_soal": "V3",
+      "indikator": "Penjaminan mutu produk dan proses sudah distandarisasi serta dilakukan pengukuran/ pengujian secara berkala oleh tenaga yang bersertifikat.",
+      "kolom5": "Penjaminan mutu berkala eksternal berstandari dengan pengujian tenaga ahli bersertifikat",
+      "kolom6": "Dokumen paraf pelaksanaan tugas/kegiatan, telaah staf, rapat teknis internal\nDokumen SPP, SOP, rapat teknis internal, hasil evaluasi, second opinion ahli\nDokumen sistem penjaminan mutu (ISO/ SMM/ Akreditasi, dan lain-lain)",
+      "level": 4,
+      "no": "P14",
+      "pertanyaan": "3. Penjaminan Mutu Layanan Perangkat Daerah"
+    },
+    "V3_5": {
+      "bobot": 5,
+      "id_soal": "V3",
+      "indikator": "Penjaminan mutu produk dan proses dilakukan terstandarisasi dan berkala oleh tenaga ahli bersertifikat serta didukung oleh teknologi informasi berbasis internet.",
+      "kolom5": "Penjaminan mutu berbasis aplikasi terintegrasi dengan lembaga sertifikasi",
+      "kolom6": "Dokumen paraf pelaksanaan tugas/kegiatan, telaah staf, rapat teknis internal\nDokumen SPP, SOP, rapat teknis internal, hasil evaluasi, second opinion ahli\nDokumen sistem penjaminan mutu (ISO/ SMM/ Akreditasi, dan lain-lain)\nDokumen screen shot aplikasi, manual aplikasi",
+      "level": 5,
+      "no": "P15",
+      "pertanyaan": "3. Penjaminan Mutu Layanan Perangkat Daerah"
+    },
+    "V4_1": {
+      "bobot": 1,
+      "id_soal": "V4",
+      "indikator": "Tidak ada definisi resmi proses pelaksanaan pekerjaan pada perangkat daerah.",
+      "kolom5": "Tanpa definisi proses pelaksanaan pekerjaan",
+      "kolom6": "Tidak ada dokumen yang dipersyaratkan",
+      "level": 1,
+      "no": "P16",
+      "pertanyaan": "4. Standar Operasional Prosedur (SOP) Pelayanan Perangkat Daerah"
+    },
+    "V4_2": {
+      "bobot": 2,
+      "id_soal": "V4",
+      "indikator": "Definisi proses organisasi sudah dituangkan dalam standar operasi prosedur (SOP).",
+      "kolom5": "Proses pelaksanaan pekerjaan dituangkan dalam SOP",
+      "kolom6": "Dokumen daftar SOP yang sudah ditetapkan; daftar SOP yang seharusnya ada",
+      "level": 2,
+      "no": "P17",
+      "pertanyaan": "4. Standar Operasional Prosedur (SOP) Pelayanan Perangkat Daerah"
+    },
+    "V4_3": {
+      "bobot": 3,
+      "id_soal": "V4",
+      "indikator": "Definisi proses organisasi sudah dituangkan ke dalam SOP dan telah dilakukan evaluasi berkala terhadap penerapan SOP",
+      "kolom5": "Ada SOP, telah dievaluasi berkala",
+      "kolom6": "Dokumen pemberitahuan adanya evaluasi SOP; rapat evaluasi SOP; laporan hasil evaluasi (nota dinas atau buku laporan)",
+      "level": 3,
+      "no": "P18",
+      "pertanyaan": "4. Standar Operasional Prosedur (SOP) Pelayanan Perangkat Daerah"
+    },
+    "V4_4": {
+      "bobot": 4,
+      "id_soal": "V4",
+      "indikator": "Definisi proses organisasi sudah dituangkan dalam SOP, sudah dievaluasi secara berkala dan dilakukan tindak lanjut terhadap hasil evaluasi penerapan SOP berupa tindakan koreksi atau perbaikan SOP.",
+      "kolom5": "Ada SOP, dievaluasi berkala, sudah ditindaklanjuti dengan revisi SOP",
+      "kolom6": "Dokumen pemberitahuan adanya evaluasi SOP; rapat evaluasi SOP; laporan hasil evaluasi (nota dinas atau buku laporan)\nDokumen SOP yang direvisi; rekap SOP yang direvisi; kesesuaian hasil monev dengan dokumen revisi",
+      "level": 4,
+      "no": "P19",
+      "pertanyaan": "4. Standar Operasional Prosedur (SOP) Pelayanan Perangkat Daerah"
+    },
+    "V4_5": {
+      "bobot": 5,
+      "id_soal": "V4",
+      "indikator": "Definisi proses organisasi sudah dituangkan dalam SOP dan sudah dilakukan evaluasi serta tindak lanjut, kemudian disesuaikan dengan kebutuhan/keluhan pelanggan serta didukung oleh teknologi berbasis internet.",
+      "kolom5": "Ada SOP, dievaluasi berkala, sudah direvisi disesuaikan dengan kebutuhan pelanggan dan menggunakan teknologi informasi",
+      "kolom6": "Dokumen pemberitahuan adanya evaluasi SOP; rapat evaluasi SOP; laporan hasil evaluasi (nota dinas atau buku laporan)\nDokumen SOP yang direvisi; rekap SOP yang direvisi; kesesuaian hasil monev dengan dokumen revisi\nDokumen pelaksanaan SOP, penyampaian informasi SOP, monev SOP (IT SOP), input pelanggan (internal) atas SOP (SOP Online), screen shot aplikasi SOP, manual SOP elektonik",
+      "level": 5,
+      "no": "P20",
+      "pertanyaan": "4. Standar Operasional Prosedur (SOP) Pelayanan Perangkat Daerah"
+    },
+    "V5_1": {
+      "bobot": 1,
+      "id_soal": "V5",
+      "indikator": "Belum ada dokumen resmi rencana kebutuhan pendidikan dan pelatihan pada perangkat daerah yang bersangkutan",
+      "kolom5": "Tidak ada rencana kebutuhan diklat",
+      "kolom6": "Tidak ada dokumen yang dipersyaratkan",
+      "level": 1,
+      "no": "P21",
+      "pertanyaan": "5. Pendidikan dan Pelatihan Aparatur"
+    },
+    "V5_2": {
+      "bobot": 2,
+      "id_soal": "V5",
+      "indikator": "Dokumen rencana kebutuhan pengembangan pegawai sudah tersusun secara parsial untuk jabatan tertentu.",
+      "kolom5": "Ada rencana kebutuhan diklat parsial jabatan tertentu",
+      "kolom6": "Dokumen rencana kebutuhan diklat (daftar nama, alokasi anggaran), nota dinas diklat, surat tugas diklat, dan lain-lain",
+      "level": 2,
+      "no": "P22",
+      "pertanyaan": "5. Pendidikan dan Pelatihan Aparatur"
+    },
+    "V5_3": {
+      "bobot": 3,
+      "id_soal": "V5",
+      "indikator": "Dokumen rencana kebutuhan pengembangan pegawai disusun untuk seluruh jabatan.",
+      "kolom5": "Ada rencana kebutuhan diklat komprehensif semua jabatan",
+      "kolom6": "Dokumen rencana kebutuhan diklat (daftar nama, alokasi anggaran), nota dinas diklat, surat tugas diklat, dan lain-lain",
+      "level": 3,
+      "no": "P23",
+      "pertanyaan": "5. Pendidikan dan Pelatihan Aparatur"
+    },
+    "V5_4": {
+      "bobot": 4,
+      "id_soal": "V5",
+      "indikator": "Rencana pengembangan pegawai dievaluasi secara regular dan seluruh pengembangan pegawai sudah dilaksanakan sesuai dengan dokumen rencana pengembangan pegawai yang sudah ditetapkan",
+      "kolom5": "Ada rencana kebutuhan diklat, dievaluasi regular, pelaksanaan sesuai rencana",
+      "kolom6": "Dokumen rencana kebutuhan diklat (daftar nama, alokasi anggaran), nota dinas diklat, surat tugas diklat, dan lain-lain\nDokumen monev diklat, tingkat capaian diklat.",
+      "level": 4,
+      "no": "P24",
+      "pertanyaan": "5. Pendidikan dan Pelatihan Aparatur"
+    },
+    "V5_5": {
+      "bobot": 5,
+      "id_soal": "V5",
+      "indikator": "Hasil (outcome) pengembangan pegawai dievalusi secara regular sebagai umpan balik.",
+      "kolom5": "Evaluasi reguler outcome diklat, ada rekomendasi dan tindaklanjut",
+      "kolom6": "Dokumen rencana kebutuhan diklat (daftar nama, alokasi anggaran), nota dinas diklat, surat tugas diklat, dan lain-lain\nDokumen monev diklat, tingkat capaian diklat.\nDokumen revisi rencana pengembangan diklat secara periodik (sesuai analisis kebutuhan diklat)",
+      "level": 5,
+      "no": "P25",
+      "pertanyaan": "5. Pendidikan dan Pelatihan Aparatur"
+    },
+    "V6_1": {
+      "bobot": 1,
+      "id_soal": "V6",
+      "indikator": "Analisis kebijakan dan pemecahan masalah dilakukan secara sederhana dan dengan metode yang tidak terukur",
+      "kolom5": "Analisis kebijakan sederhana dengan metode tidak terukur",
+      "kolom6": "Dokumen telaah staf, hasil ratek internal",
+      "level": 1,
+      "no": "P26",
+      "pertanyaan": "6. Analisis Kebijakan dan Pemecahan Masalah Tugas Perangkat Daerah"
+    },
+    "V6_2": {
+      "bobot": 2,
+      "id_soal": "V6",
+      "indikator": "Analisis kebijakan yang berdampak ke publik dilakukan oleh tim internal perangkat daerah yang bersangkutan.",
+      "kolom5": "Analisis kebijakan berdampak publik oleh tim internal",
+      "kolom6": "Dokumen telaah staf, hasil ratek internal\nDokumen SK Tim Khusus (internal OPD), kegiatan tim, hasil dan rekomendasi tim, laporan kajian",
+      "level": 2,
+      "no": "P27",
+      "pertanyaan": "6. Analisis Kebijakan dan Pemecahan Masalah Tugas Perangkat Daerah"
+    },
+    "V6_3": {
+      "bobot": 3,
+      "id_soal": "V6",
+      "indikator": "Analisis kebijakan dan pemecahan masalah yang berdampak ke publik dilakukan menggunakan metode/teknik ilmiah oleh tim internal dengan melibatkan instansi pemerintah terkait.",
+      "kolom5": "Analisis kebijakan berdampak publik oleh tim internal pakai metode/ teknik ilmiah dan lintas instansi",
+      "kolom6": "Dokumen telaah staf, hasil ratek internal\nDokumen SK Tim Khusus (internal OPD), kegiatan tim, hasil dan rekomendasi tim, laporan kajian\nDokumen SK Tim Teknis (lintas OPD), kegiatan tim, hasil dan rekomendasi tim, laporan kajian",
+      "level": 3,
+      "no": "P28",
+      "pertanyaan": "6. Analisis Kebijakan dan Pemecahan Masalah Tugas Perangkat Daerah"
+    },
+    "V6_4": {
+      "bobot": 4,
+      "id_soal": "V6",
+      "indikator": "Analisis kebijakan dan pemecahan masalah yang - 17 - bersifat strategis/berdampak ke publik melibatkan tim ahli.",
+      "kolom5": "Analisis kebijakan strategis berdampak publik oleh tim Ahli eksternal",
+      "kolom6": "Dokumen telaah staf, hasil ratek internal\nDokumen SK Tim Khusus (internal OPD), kegiatan tim, hasil dan rekomendasi tim, laporan kajian\nDokumen SK Tim Teknis (lintas OPD), kegiatan tim, hasil dan rekomendasi tim, laporan kajian\nDokumen SK Tim Ahli (Narsum dan Kerjasama), kegiatan tim, hasil dan rekomendasi tim, laporan kajian",
+      "level": 4,
+      "no": "P29",
+      "pertanyaan": "6. Analisis Kebijakan dan Pemecahan Masalah Tugas Perangkat Daerah"
+    },
+    "V6_5": {
+      "bobot": 5,
+      "id_soal": "V6",
+      "indikator": "Analisis kebijakan dan pemecahan masalah strategis/berdampak ke publik melibatkan tim ahli dengan melakukan konsultasi publik dan analisis umpan balik yang terukur dan terdokumentasi.",
+      "kolom5": "Analisis kebijakan strategis berdampak publik melibatkan Tim Ahli pakai konsultasi publik dan analisis feedback",
+      "kolom6": "Dokumen telaah staf, hasil ratek internal\nDokumen SK Tim Khusus (internal OPD), kegiatan tim, hasil dan rekomendasi tim, laporan kajian\nDokumen SK Tim Teknis (lintas OPD), kegiatan tim, hasil dan rekomendasi tim, laporan kajian\nDokumen SK Tim Ahli (Narsum dan Kerjasama), kegiatan tim, hasil dan rekomendasi tim, laporan kajian\nDokumen SK Tim Ahli (Narsum dan Kerjasama), kegiatan tim, hasil dan rekomendasi tim, laporan kajian menggunakan konsultasi publik dan analisis feedback (undangan, notulen, hasil, rekomendasi)",
+      "level": 5,
+      "no": "P30",
+      "pertanyaan": "6. Analisis Kebijakan dan Pemecahan Masalah Tugas Perangkat Daerah"
+    },
+    "V7_1": {
+      "bobot": 1,
+      "id_soal": "V7",
+      "indikator": "Penggunaan sumber daya dilakukan hanya berdasarkan ketentuan formal yang berlaku.",
+      "kolom5": "Hanya pakai aturan formal",
+      "kolom6": "Dokumen aturan formal sumber daya (man, money, material)",
+      "level": 1,
+      "no": "P31",
+      "pertanyaan": "7. Manajemen Sumber Daya Peralatan dan Perlengkapan Kerja Yang Terukur"
+    },
+    "V7_2": {
+      "bobot": 2,
+      "id_soal": "V7",
+      "indikator": "Penentuan penggunaan input proyek dilakukan berdasarkan analisis kebutuhan bahan/ sumber daya yang sudah ditetapkan.",
+      "kolom5": "Ada analisis kebutuhan sumber daya",
+      "kolom6": "Dokumen aturan formal sumber daya (man, money, material)\nDokumen analisis kebutuhan anggaran (Perbup standarisasi harga), tenaga (Tusi, data pegawai), dan material/ sarpras (daftar inventaris dan aset)",
+      "level": 2,
+      "no": "P32",
+      "pertanyaan": "7. Manajemen Sumber Daya Peralatan dan Perlengkapan Kerja Yang Terukur"
+    },
+    "V7_3": {
+      "bobot": 3,
+      "id_soal": "V7",
+      "indikator": "Analisis kebutuhan input/sumber daya proyek sudah distandarisasi dengan proses ujicoba secara terbuka dan menggunakan metode ilmiah.",
+      "kolom5": "Ada analisis kebutuhan sumber daya terstandar dengan uji terbuka pakai metode ilmiah",
+      "kolom6": "Dokumen aturan formal sumber daya (man, money, material)\nDokumen analisis kebutuhan anggaran (Perbup standarisasi harga), tenaga (Tusi, data pegawai), dan material/ sarpras (daftar inventaris dan aset)\nDokumen ASB, Anjab, ABK, dan material (analisis kebutuhan barang)",
+      "level": 3,
+      "no": "P33",
+      "pertanyaan": "7. Manajemen Sumber Daya Peralatan dan Perlengkapan Kerja Yang Terukur"
+    },
+    "V7_4": {
+      "bobot": 4,
+      "id_soal": "V7",
+      "indikator": "Penyediaan sumber daya dalam pelaksanaan proyek dimonitor secara ketat berdasarkan standar input sumber daya, SOP dan prosedur penjaminan mutu produk.",
+      "kolom5": "Ada monitoring penyediaan sumber daya, terstandar, ada SOP dan penjaminan mutu",
+      "kolom6": "Dokumen aturan formal sumber daya (man, money, material)\nDokumen analisis kebutuhan anggaran (Perbup standarisasi harga), tenaga (Tusi, data pegawai), dan material/ sarpras (daftar inventaris dan aset)\nDokumen ASB, Anjab, ABK, dan material (analisis kebutuhan barang)\nDokumen monev penyediaan sumber daya, SOP, penjaminan mutu (man, money, material)",
+      "level": 4,
+      "no": "P34",
+      "pertanyaan": "7. Manajemen Sumber Daya Peralatan dan Perlengkapan Kerja Yang Terukur"
+    },
+    "V7_5": {
+      "bobot": 5,
+      "id_soal": "V7",
+      "indikator": "Penyediaan sumber daya dan pelaksanaan proyek dimonitor secara ketat berdasarkan SOP dan prosedur penjaminan mutu produk dan didukung oleh teknologi informasi berbasis internet.",
+      "kolom5": "Ada monitoring penyediaan sumber daya, terstandar, ada SOP dan penjaminan mutu, pakai aplikasi teknologi informasi (monev elektronik)",
+      "kolom6": "Dokumen aturan formal sumber daya (man, money, material)\nDokumen analisis kebutuhan anggaran (Perbup standarisasi harga), tenaga (Tusi, data pegawai), dan material/ sarpras (daftar inventaris dan aset)\nDokumen ASB, Anjab, ABK, dan material (analisis kebutuhan barang)\nDokumen monev penyediaan sumber daya, SOP, penjaminan mutu (man, money, material)\nDokumen screen shot aplikasi, manual aplikasi",
+      "level": 5,
+      "no": "P35",
+      "pertanyaan": "7. Manajemen Sumber Daya Peralatan dan Perlengkapan Kerja Yang Terukur"
+    },
+    "V8_1": {
+      "bobot": 1,
+      "id_soal": "V8",
+      "indikator": "Belum ada manajemen resiko dalam pelaksanaan tugas pada perangkat daerah.",
+      "kolom5": "Tanpa manajemen risiko",
+      "kolom6": "Tidak ada dokumen yang dipersyaratkan",
+      "level": 1,
+      "no": "P36",
+      "pertanyaan": "8. Manajemen Resiko Pelaksanaan Tugas Aparatur"
+    },
+    "V8_2": {
+      "bobot": 2,
+      "id_soal": "V8",
+      "indikator": "Sudah ada sebagian pegawai yang melakukan analisis resiko dalam pelaksanaan tugasnya, namun hanya bersifat individu",
+      "kolom5": "RTP disusun oleh sebagian pegawai dan berlum melibatkan seluruh unsur manajemen organisasi",
+      "kolom6": "Dokumen analisis risiko individual (Rencana Tindak Pengendalian unit kerja di bawah OPD)",
+      "level": 2,
+      "no": "P37",
+      "pertanyaan": "8. Manajemen Resiko Pelaksanaan Tugas Aparatur"
+    },
+    "V8_3": {
+      "bobot": 3,
+      "id_soal": "V8",
+      "indikator": "Perangkat daerah sudah menetapkan prosedur pengelolaan resiko dalam pelaksanaan tugas tertentu yang dipandang mempunyai resiko tinggi.",
+      "kolom5": "Terdapat pengelolaan risiko pada kegiatan tertentu yang mempunyai risiko signifikan",
+      "kolom6": "Dokumen analisis risiko individual (Rencana Tindak Pengendalian unit kerja di bawah OPD)\nDokumen SK Satgas SPIP (Kegiatan Satgas), Register Risiko tugas berisiko tinggi.",
+      "level": 3,
+      "no": "P38",
+      "pertanyaan": "8. Manajemen Resiko Pelaksanaan Tugas Aparatur"
+    },
+    "V8_4": {
+      "bobot": 4,
+      "id_soal": "V8",
+      "indikator": "Perangkat daerah sudah menetapkan prosedur pengelolaan resiko untuk seluruh tugas pada perangkat daerah yang bersangkutan, namun belum dilakukan evaluasi secara berkala.",
+      "kolom5": "Ada pengelolaan risiko seluruh kegiatan, tanpa evaluasi berkala",
+      "kolom6": "Dokumen analisis risiko individual (Rencana Tindak Pengendalian unit kerja di bawah OPD)\nDokumen SK Satgas SPIP (Kegiatan Satgas), Register Risiko tugas berisiko tinggi.\nDokumen Register Resiko seluruh tugas (komprehensif) sesuai Tujuan Sasaran Renstra",
+      "level": 4,
+      "no": "P39",
+      "pertanyaan": "8. Manajemen Resiko Pelaksanaan Tugas Aparatur"
+    },
+    "V8_5": {
+      "bobot": 5,
+      "id_soal": "V8",
+      "indikator": "Perangkat Daerah sudah menetapkan prosedur pengelolaan resiko dalam pelaksanaan tugas serta semua resiko dapat dikendalikan tanpa ada kerugian baik bagi pegawai maupun instansi.",
+      "kolom5": "Ada pengelolaan risiko seluruh kegiatan, risiko terkendali tanpa kerugian pegawai dan instansi",
+      "kolom6": "Dokumen analisis risiko individual (Rencana Tindak Pengendalian unit kerja di bawah OPD)\nDokumen SK Satgas SPIP (Kegiatan Satgas), Register Risiko tugas berisiko tinggi.\nDokumen Register Resiko seluruh tugas (komprehensif) sesuai Tujuan Sasaran Renstra\nDokumen laporan penyelenggaraan SPIP, (laporan pengendalian OPD/ Realisasi RTP tanpa kerugian), RTP telah di-update.",
+      "level": 5,
+      "no": "P40",
+      "pertanyaan": "8. Manajemen Resiko Pelaksanaan Tugas Aparatur"
+    },
+    "V9_1": {
+      "bobot": 1,
+      "id_soal": "V9",
+      "indikator": "Belum ada target/rencana kinerja perangkat daerah yang terukur.",
+      "kolom5": "Tanpa target/ rencana kinerja terukur",
+      "kolom6": "Tidak ada dokumen yang dipersyaratkan",
+      "level": 1,
+      "no": "P41",
+      "pertanyaan": "9. Pengukuran Kinerja Perangkat Daerah dan Aparatur"
+    },
+    "V9_2": {
+      "bobot": 2,
+      "id_soal": "V9",
+      "indikator": "Sudah ada target kinerja perangkat daerah, tapi belum konsisten mengacu dokumen perencanaan daerah",
+      "kolom5": "Ada target kinerja, belum konsisten rencana",
+      "kolom6": "Dokumen PK dan Renstra (belum konsisten/belum sinkron)",
+      "level": 2,
+      "no": "P42",
+      "pertanyaan": "9. Pengukuran Kinerja Perangkat Daerah dan Aparatur"
+    },
+    "V9_3": {
+      "bobot": 3,
+      "id_soal": "V9",
+      "indikator": "Sudah ada target kinerja perangkat daerah yang konsisten dengan dokumen perencanaan.",
+      "kolom5": "Ada target kinerja, sudah konsisten rencana",
+      "kolom6": "Dokumen PK dan Renstra (sudah konsisten)",
+      "level": 3,
+      "no": "P43",
+      "pertanyaan": "9. Pengukuran Kinerja Perangkat Daerah dan Aparatur"
+    },
+    "V9_4": {
+      "bobot": 4,
+      "id_soal": "V9",
+      "indikator": "Target kinerja perangkat daerah sudah dilakukan pengukuran pencapaiannya.",
+      "kolom5": "Ada target kinerja, sudah dilakukan pengukuran",
+      "kolom6": "Dokumen PK dan Renstra (sudah konsisten)\nDokumen LKJiP dan LHE SAKIP",
+      "level": 4,
+      "no": "P44",
+      "pertanyaan": "9. Pengukuran Kinerja Perangkat Daerah dan Aparatur"
+    },
+    "V9_5": {
+      "bobot": 5,
+      "id_soal": "V9",
+      "indikator": "Pencapaian target kinerja perangkat daerah sudah diukur dan sudah tercapai dengan baik (diatas 90 %) serta telah dilakukan evaluasi pencapaian target kinerja serta didukung dengan teknologi informasi.",
+      "kolom5": "Ada pengukuran tingkat capaian kinerja, sudah mencapai di atas 90%, pakai aplikasi teknologi informasi",
+      "kolom6": "Dokumen PK dan Renstra (sudah konsisten)\nDokumen LKJiP dan LHE SAKIP\nDokumen LKJiP dan LHE SAKIP dengan capaian kinerja di atas 90%\nscreen shot aplikasi kinerja, manual/aplikasi (e-SAKIP dan e-Kinerja)",
+      "level": 5,
+      "no": "P45",
+      "pertanyaan": "9. Pengukuran Kinerja Perangkat Daerah dan Aparatur"
+    }
+  },
+  "users": {
+    "BAPPERIDA": {
+      "nama_opd": "Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah",
+      "password": "123",
+      "role": "Responden"
+    },
+    "BKPSDM": {
+      "nama_opd": "Badan Kepegawaian dan Pengembangan Sumber Daya Manusia",
+      "password": "123",
+      "role": "Responden"
+    },
+    "BPBD": {
+      "nama_opd": "Badan Penanggulangan Bencana Daerah",
+      "password": "123",
+      "role": "Responden"
+    },
+    "BPKAD": {
+      "nama_opd": "Badan Pengelola Keuangan dan Aset Daerah",
+      "password": "123",
+      "role": "Responden"
+    },
+    "BPPRD": {
+      "nama_opd": "Badan Pengelola Pajak dan Retribusi Daerah",
+      "password": "123",
+      "role": "Responden"
+    },
+    "DLH": {
+      "nama_opd": "Dinas Lingkungan Hidup",
+      "password": "123",
+      "role": "Responden"
+    },
+    "DPAD": {
+      "nama_opd": "Dinas Perpustakaan dan Arsip Daerah",
+      "password": "123",
+      "role": "Responden"
+    },
+    "DPMPTSP": {
+      "nama_opd": "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu",
+      "password": "123",
+      "role": "Responden"
+    },
+    "DTPH": {
+      "nama_opd": "Dinas Tanaman Pangan dan Hortikultura",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Diknas": {
+      "nama_opd": "Dinas Pendidikan dan Kebudayaan",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Dinas PMD": {
+      "nama_opd": "Dinas Pemberdayaan Masyarakat dan Desa",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Dinas PPKB": {
+      "nama_opd": "Dinas Pengendalian Penduduk dan Keluarga Berencana",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Dinkes": {
+      "nama_opd": "Dinas Kesehatan",
+      "password": "123",
+      "role": "Responden"
+    },
+    "DinsosPPA": {
+      "nama_opd": "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Disbunak": {
+      "nama_opd": "Dinas Perkebunan dan Peternakan",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Disdamkartan": {
+      "nama_opd": "Dinas Pemadam Kebakaran dan Penyelamatan",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Disdukcapil": {
+      "nama_opd": "Dinas Kependudukan dan Pencatatan Sipil",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Dishanpan": {
+      "nama_opd": "Dinas Ketahanan Pangan",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Dishub": {
+      "nama_opd": "Dinas Perhubungan",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Diskan": {
+      "nama_opd": "Dinas Perikanan",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Diskominfo": {
+      "nama_opd": "Dinas Komunikasi dan Informatika",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Diskoperindag": {
+      "nama_opd": "Dinas Koperasi, Usaha Kecil Menengah, Perindustrian dan Perdagangan",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Disnakertrans": {
+      "nama_opd": "Dinas Tenaga Kerja dan Transmigrasi",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Disparpora": {
+      "nama_opd": "Dinas Pariwisata, Kepemudaan dan Olahraga",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Disperkim": {
+      "nama_opd": "Dinas Perumahan Dan Kawasan Permukiman",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Inspektorat": {
+      "nama_opd": "Inspektorat Daerah",
+      "password": "123",
+      "role": "Responden"
+    },
+    "KESBANGPOL": {
+      "nama_opd": "Kesbangpol",
+      "password": "123",
+      "role": "Responden"
+    },
+    "PUPR": {
+      "nama_opd": "Dinas Pekerjaan Umum dan Penataan Ruang",
+      "password": "123",
+      "role": "Responden"
+    },
+    "SETWAN": {
+      "nama_opd": "Sekretariat Dewan Perwakilan Rakyat Daerah",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Satpol PP": {
+      "nama_opd": "Satuan Polisi Pamong Praja",
+      "password": "123",
+      "role": "Responden"
+    },
+    "Setda": {
+      "nama_opd": "Sekretariat Daerah",
+      "password": "123",
+      "role": "Responden"
+    },
+    "admin": {
+      "nama_opd": "Bagian Organisasi",
+      "password": "rahasiakitaber2",
+      "role": "Admin"
+    },
+    "biroprov": {
+      "nama_opd": "Biro Organisasi Setda Provinsi Jambi",
+      "password": "123",
+      "role": "Provinsi"
+    },
+    "evaluator1": {
+      "nama_opd": "Tim Verifikator",
+      "password": "cekdata",
+      "role": "Evaluator"
+    },
+    "kec_baharselatan": {
+      "nama_opd": "Kecamatan Bahar Selatan",
+      "password": "123",
+      "role": "Responden"
+    },
+    "kec_baharutara": {
+      "nama_opd": "Kecamatan Bahar Utara",
+      "password": "123",
+      "role": "Responden"
+    },
+    "kec_jaluko": {
+      "nama_opd": "Kecamatan Jambi Luar Kota",
+      "password": "123",
+      "role": "Responden"
+    },
+    "kec_kumpeh": {
+      "nama_opd": "Kecamatan Kumpeh",
+      "password": "123",
+      "role": "Responden"
+    },
+    "kec_kumpehulu": {
+      "nama_opd": "Kecamatan Kumpeh Ulu",
+      "password": "123",
+      "role": "Responden"
+    },
+    "kec_marosebo": {
+      "nama_opd": "Kecamatan Maro Sebo",
+      "password": "123",
+      "role": "Responden"
+    },
+    "kec_mestong": {
+      "nama_opd": "Kecamatan Mestong",
+      "password": "123",
+      "role": "Responden"
+    },
+    "kec_sekernan": {
+      "nama_opd": "Kecamatan Sekernan",
+      "password": "123",
+      "role": "Responden"
+    },
+    "kec_sungaibahar": {
+      "nama_opd": "Kecamatan Sungai Bahar",
+      "password": "123",
+      "role": "Responden"
+    },
+    "kec_sungaigelam": {
+      "nama_opd": "Kecamatan Sungai Gelam",
+      "password": "123",
+      "role": "Responden"
+    },
+    "kec_tamanrajo": {
+      "nama_opd": "Kecamatan Taman Rajo",
+      "password": "123",
+      "role": "Responden"
+    },
+    "percubaan": {
+      "nama_opd": "Dinas Percubaan",
+      "password": "123",
+      "role": "Responden"
+    }
+  },
+  "verifikasi": {
+    "Dinas Percubaan": {
+      "V1": {
+        "catatan_evaluator": "oke yg pertama",
+        "catatan_provinsi": "",
+        "skala_evaluator": 2,
+        "skala_provinsi": 2,
+        "skala_responden": 2,
+        "timestamp": "2026-07-06T02:39:52.606Z"
+      },
+      "V10": {
+        "catatan_evaluator": "",
+        "catatan_provinsi": "",
+        "skala_evaluator": 3,
+        "skala_provinsi": 3,
+        "skala_responden": 3,
+        "timestamp": "2026-07-06T02:39:52.606Z"
+      },
+      "V11": {
+        "catatan_evaluator": "",
+        "catatan_provinsi": "",
+        "skala_evaluator": 2,
+        "skala_provinsi": 2,
+        "skala_responden": 2,
+        "timestamp": "2026-07-06T02:39:52.606Z"
+      },
+      "V2": {
+        "catatan_evaluator": "",
+        "catatan_provinsi": "",
+        "skala_evaluator": 5,
+        "skala_provinsi": 5,
+        "skala_responden": 5,
+        "timestamp": "2026-07-06T02:39:52.606Z"
+      },
+      "V3": {
+        "catatan_evaluator": "",
+        "catatan_provinsi": "",
+        "skala_evaluator": 4,
+        "skala_provinsi": 4,
+        "skala_responden": 4,
+        "timestamp": "2026-07-06T02:39:52.606Z"
+      },
+      "V4": {
+        "catatan_evaluator": "",
+        "catatan_provinsi": "",
+        "skala_evaluator": 2,
+        "skala_provinsi": 2,
+        "skala_responden": 2,
+        "timestamp": "2026-07-06T02:39:52.606Z"
+      },
+      "V5": {
+        "catatan_evaluator": "",
+        "catatan_provinsi": "",
+        "skala_evaluator": 1,
+        "skala_provinsi": 1,
+        "skala_responden": 1,
+        "timestamp": "2026-07-06T02:39:52.606Z"
+      },
+      "V6": {
+        "catatan_evaluator": "",
+        "catatan_provinsi": "",
+        "skala_evaluator": 2,
+        "skala_provinsi": 2,
+        "skala_responden": 2,
+        "timestamp": "2026-07-06T02:39:52.606Z"
+      },
+      "V7": {
+        "catatan_evaluator": "",
+        "catatan_provinsi": "",
+        "skala_evaluator": 5,
+        "skala_provinsi": 5,
+        "skala_responden": 5,
+        "timestamp": "2026-07-06T02:39:52.606Z"
+      },
+      "V8": {
+        "catatan_evaluator": "",
+        "catatan_provinsi": "",
+        "skala_evaluator": 4,
+        "skala_provinsi": 4,
+        "skala_responden": 4,
+        "timestamp": "2026-07-06T02:39:52.606Z"
+      },
+      "V9": {
+        "catatan_evaluator": "",
+        "catatan_provinsi": "",
+        "skala_evaluator": 3,
+        "skala_provinsi": 3,
+        "skala_responden": 3,
+        "timestamp": "2026-07-06T02:39:52.606Z"
+      }
+    }
+  }
+}

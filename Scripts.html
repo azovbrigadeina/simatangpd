@@ -16,6 +16,20 @@
     loadPublicStats();
   });
 
+  function toggleSidebar() {
+    const sb = document.getElementById('eval-sidebar');
+    const bd = document.getElementById('sidebar-backdrop');
+    if (sb) sb.classList.toggle('sidebar-open');
+    if (bd) bd.classList.toggle('show');
+  }
+
+  function closeSidebar() {
+    const sb = document.getElementById('eval-sidebar');
+    const bd = document.getElementById('sidebar-backdrop');
+    if (sb) sb.classList.remove('sidebar-open');
+    if (bd) bd.classList.remove('show');
+  }
+
   function loadPublicStats() {
     google.script.run.withSuccessHandler(res => {
       // Sembunyikan spinner dan tampilkan konten
@@ -191,7 +205,50 @@
                 if(totQ === 0) {
                   document.getElementById('f-cont').innerHTML = `<div class="brut-card text-center py-5">Format data spreadsheet tidak dikenali. Pastikan ID_Variabel (Kolom B) terisi.</div>`;
                 } else {
-                  showS(0);
+                  // Memuat jawaban tersimpan (draft) jika ada
+                  google.script.run
+                    .withFailureHandler(err => {
+                      console.error("Gagal muat draft:", err);
+                      showS(0);
+                    })
+                    .withSuccessHandler(savedData => {
+                      const btnSaveTop = document.getElementById('btn-save-draft-top');
+                      if (btnSaveTop) btnSaveTop.classList.remove('hidden');
+
+                      if (savedData && savedData.jawaban && Object.keys(savedData.jawaban).length > 0) {
+                        Object.keys(savedData.jawaban).forEach(varId => {
+                          const item = savedData.jawaban[varId];
+                          ans[varId] = {
+                            id: varId,
+                            level: item.level !== undefined ? item.level : "",
+                            link: item.link || ""
+                          };
+                        });
+
+                        // Tentukan indeks variabel pertama yang belum selesai diisi
+                        let targetIdx = 0;
+                        for (let i = 0; i < cats.length; i++) {
+                          if (!isAnswered(cats[i])) {
+                            targetIdx = i;
+                            break;
+                          }
+                        }
+
+                        const filledCount = Object.keys(ans).filter(id => ans[id].level || ans[id].link).length;
+                        Swal.fire({
+                          icon: 'info',
+                          title: 'DRAFT DITEMUKAN',
+                          text: `Ditemukan ${filledCount} isian draft tersimpan. Anda melanjutkan dari Variabel ${targetIdx + 1}.`,
+                          timer: 3000,
+                          showConfirmButton: false
+                        });
+
+                        showS(targetIdx);
+                      } else {
+                        showS(0);
+                      }
+                    })
+                    .getJawabanResponden(namaOPD);
                 }
               })
               .withFailureHandler(err => {
@@ -251,9 +308,14 @@
              oninput="ans['${varId}'].link = this.value; upP();">
     </div>
 
-    <div class="d-flex justify-content-between mt-4 pb-5">
+    <div class="d-flex justify-content-between align-items-center gap-2 mt-4 pb-5 flex-wrap">
       <button class="btn btn-brut bg-light" onclick="showS(${idx-1})" ${idx===0?'disabled':''}>KEMBALI</button>
-      ${idx < cats.length-1 ? `<button class="btn btn-brut" onclick="nextS()">LANJUT</button>` : `<button class="btn btn-brut btn-brut-green" onclick="finS()">KIRIM JAWABAN</button>`}
+      <div class="d-flex gap-2">
+        <button class="btn btn-brut btn-brut-green" onclick="simpanDraft()">
+          <i class="bi bi-floppy me-1"></i> SIMPAN SEMENTARA
+        </button>
+        ${idx < cats.length-1 ? `<button class="btn btn-brut" onclick="nextS()">LANJUT</button>` : `<button class="btn btn-brut btn-brut-pink" onclick="finS()">KIRIM JAWABAN</button>`}
+      </div>
     </div>`;
 
     cont.innerHTML = h;
@@ -365,6 +427,54 @@
     document.getElementById('p-tex').innerText = p+'%'; 
   }
 
+  function simpanDraft(isSilent = false) {
+    const answeredCount = Object.keys(ans).filter(varId => ans[varId] && (ans[varId].level || (ans[varId].link && ans[varId].link.trim()))).length;
+    
+    if (answeredCount === 0) {
+      if (!isSilent) {
+        Swal.fire({
+          icon: 'info',
+          title: 'BELUM ADA ISIAN',
+          text: 'Silakan isi setidaknya satu tingkat kematangan atau link bukti dukung sebelum menyimpan draft.',
+          confirmButtonColor: '#000'
+        });
+      }
+      return;
+    }
+
+    if (!isSilent) {
+      Swal.fire({
+        title: 'Menyimpan draft...',
+        text: 'Mohon tunggu sebentar',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+    }
+
+    google.script.run
+      .withSuccessHandler(() => {
+        if (!isSilent) {
+          Swal.fire({
+            icon: 'success',
+            title: 'DRAFT TERSIMPAN',
+            text: `Berhasil menyimpan ${answeredCount} isian sementara. Anda dapat melanjutkan pengisian kapan saja.`,
+            timer: 2500,
+            showConfirmButton: false
+          });
+        }
+      })
+      .withFailureHandler(err => {
+        if (!isSilent) {
+          Swal.fire('Gagal Menyimpan', 'Terjadi kesalahan: ' + (err.message || err), 'error');
+        }
+      })
+      .simpanSemuaJawaban({
+        opd: sess.nama_opd,
+        jawaban: Object.values(ans),
+        isFinal: false
+      });
+  }
+
   function finS() { 
     const answeredCount = Object.keys(ans).filter(varId => isAnswered(varId)).length;
     if(answeredCount < totQ) return Swal.fire('BELUM SELESAI', `Anda baru mengisi ${answeredCount} dari ${totQ} variabel.`,'warning');
@@ -380,9 +490,25 @@
     }).then(result => {
       if(result.isConfirmed) {
         Swal.fire({title:'Mengirim data...', didOpen:()=>Swal.showLoading()}); 
-        google.script.run.withSuccessHandler(() => {
-          window.top.location.href = 'https://bagorsetdamuarojambi.blogspot.com/';
-        }).simpanSemuaJawaban({opd: sess.nama_opd, jawaban: Object.values(ans)});
+        google.script.run
+          .withSuccessHandler(() => {
+            Swal.fire({
+              icon: 'success',
+              title: 'BERHASIL DIKIRIM',
+              text: 'Jawaban Anda telah berhasil dikirim dan dikunci.',
+              confirmButtonColor: '#000'
+            }).then(() => {
+              window.top.location.href = 'https://bagorsetdamuarojambi.blogspot.com/';
+            });
+          })
+          .withFailureHandler(err => {
+            Swal.fire('Gagal', 'Terjadi kesalahan saat mengirim: ' + (err.message || err), 'error');
+          })
+          .simpanSemuaJawaban({
+            opd: sess.nama_opd,
+            jawaban: Object.values(ans),
+            isFinal: true
+          });
       }
     });
   }

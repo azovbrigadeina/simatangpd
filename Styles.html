@@ -30,12 +30,14 @@
   
   /* Layout */
   .sidebar { 
-    width: 280px; height: 100vh; position: fixed; 
+    width: 280px; height: 100vh; position: fixed; top: 0; left: 0;
     background: var(--accent); border: var(--brut-border); 
-    margin: 10px; border-radius: 0; padding: 20px; z-index: 1000; 
+    margin: 10px; border-radius: 0; padding: 20px; z-index: 1040; 
     box-shadow: var(--brut-shadow);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
   }
-  .content { margin-left: 310px; padding: 30px; flex: 1; }
+  .content { margin-left: 310px; padding: 30px; flex: 1; min-width: 0; }
   #p-resp { flex: 1; padding: 20px; }
   
   /* Neo-Brutalism Cards */
@@ -168,11 +170,40 @@
   .modal-header { border-bottom: var(--brut-border); background: var(--accent); }
   .modal-footer { border-top: var(--brut-border); }
 
-  @media (max-width: 768px) { 
-    .sidebar { display: none; } 
-    .content { margin-left: 0; } 
+  @media (max-width: 991.98px) { 
+    .sidebar { 
+      top: 0;
+      left: 0;
+      margin: 0;
+      height: 100vh;
+      width: 280px;
+      position: fixed;
+      z-index: 1050;
+      transform: translateX(-105%);
+      box-shadow: 8px 0px 0px #000;
+    } 
+    .sidebar.sidebar-open {
+      transform: translateX(0);
+    }
+    .content { margin-left: 0; padding: 15px; } 
     .eval-footer { margin-left: 0; }
     .opd-grid { grid-template-columns: 1fr !important; }
+  }
+
+  /* Backdrop Overlay for Mobile Drawer */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1045;
+  }
+  .sidebar-backdrop.show {
+    display: block;
   }
 
   /* === OPD Compact Card Grid === */

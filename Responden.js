@@ -37,30 +37,150 @@ function getPertanyaan() {
 }
 
 function simpanSemuaJawaban(payload) {
+  const isFinal = payload.isFinal !== undefined ? payload.isFinal : true;
+  const ts = new Date().toISOString();
+
   if (SETTINGS.USE_FIREBASE) {
-    const ts = new Date().toISOString();
     const opd = Firebase.escapeKey(payload.opd);
     
     const updates = {};
     payload.jawaban.forEach(item => {
-      const escapedId = Firebase.escapeKey(item.id);
-      updates[escapedId] = {
-        timestamp: ts,
-        level: Number(item.level),
-        link: item.link || ""
-      };
+      if (item && item.id && (item.level || item.link)) {
+        const escapedId = Firebase.escapeKey(item.id);
+        updates[escapedId] = {
+          timestamp: ts,
+          level: Number(item.level || 0),
+          link: item.link || ""
+        };
+      }
     });
     
-    Firebase.patch(`jawaban/${opd}`, updates);
+    if (Object.keys(updates).length > 0) {
+      Firebase.patch(`jawaban/${opd}`, updates);
+    }
+    
+    Firebase.set(`status_pengisian/${opd}`, {
+      status: isFinal ? "SUBMITTED" : "DRAFT",
+      updated_at: ts
+    });
+    
     return "Berhasil";
   }
 
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Jawaban");
-  const ts = new Date();
-  const rows = payload.jawaban.map(item => [ts, payload.opd, item.id, item.level, item.link]);
-  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+  // Fallback ke Google Sheets
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName("Jawaban");
+  if (!sheet) {
+    sheet = ss.insertSheet("Jawaban");
+    sheet.appendRow(["Timestamp", "OPD", "ID_Soal", "Level", "Link"]);
+  }
+
+  // Hapus jawaban terdahulu untuk OPD ini agar overwrite
+  const data = sheet.getDataRange().getValues();
+  for (let i = data.length - 1; i >= 1; i--) {
+    if (data[i][1] === payload.opd) {
+      sheet.deleteRow(i + 1);
+    }
+  }
+
+  // Tulis jawaban baru
+  const validJawaban = payload.jawaban.filter(item => item && (item.level || item.link));
+  if (validJawaban.length > 0) {
+    const dateObj = new Date();
+    const rows = validJawaban.map(item => [dateObj, payload.opd, item.id, item.level, item.link]);
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+  }
+
+  // Simpan status pengisian
+  let statusSheet = ss.getSheetByName("Status_Pengisian");
+  if (!statusSheet) {
+    statusSheet = ss.insertSheet("Status_Pengisian");
+    statusSheet.appendRow(["OPD", "Status", "Timestamp"]);
+  }
+  const sData = statusSheet.getDataRange().getValues();
+  let foundIndex = -1;
+  for (let i = 1; i < sData.length; i++) {
+    if (sData[i][0] === payload.opd) {
+      foundIndex = i + 1;
+      break;
+    }
+  }
+  const statusStr = isFinal ? "SUBMITTED" : "DRAFT";
+  if (foundIndex > 0) {
+    statusSheet.getRange(foundIndex, 2, 1, 2).setValues([[statusStr, new Date()]]);
+  } else {
+    statusSheet.appendRow([payload.opd, statusStr, new Date()]);
+  }
+
   return "Berhasil";
 }
+
+/**
+ * Mengambil jawaban tersimpan dan status pengisian responden.
+ * @param {string} namaOPD
+ * @returns {{ jawaban: Object, isFinal: boolean, hasDraft: boolean }}
+ */
+function getJawabanResponden(namaOPD) {
+  if (!namaOPD) return { jawaban: {}, isFinal: false, hasDraft: false };
+
+  if (SETTINGS.USE_FIREBASE) {
+    const escapedOPD = Firebase.escapeKey(namaOPD);
+    const jawabanOPD = Firebase.get(`jawaban/${escapedOPD}`) || {};
+    const statusData = Firebase.get(`status_pengisian/${escapedOPD}`);
+    
+    const isFinal = statusData ? (statusData.status === "SUBMITTED") : false;
+    
+    const formattedJawaban = {};
+    Object.entries(jawabanOPD).forEach(([idSoal, j]) => {
+      formattedJawaban[idSoal] = {
+        id: idSoal,
+        level: j.level !== undefined ? j.level : "",
+        link: j.link || ""
+      };
+    });
+
+    return {
+      jawaban: formattedJawaban,
+      isFinal: isFinal,
+      hasDraft: Object.keys(formattedJawaban).length > 0
+    };
+  }
+
+  // Fallback Google Sheets
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("Jawaban");
+  const formattedJawaban = {};
+  if (sheet && sheet.getLastRow() > 1) {
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][1] === namaOPD) {
+        const idSoal = data[i][2];
+        formattedJawaban[idSoal] = {
+          id: idSoal,
+          level: data[i][3],
+          link: data[i][4] || ""
+        };
+      }
+    }
+  }
+
+  const statusSheet = ss.getSheetByName("Status_Pengisian");
+  let isFinal = false;
+  if (statusSheet && statusSheet.getLastRow() > 1) {
+    const sData = statusSheet.getDataRange().getValues();
+    const row = sData.find(r => r[0] === namaOPD);
+    if (row && row[1] === "SUBMITTED") {
+      isFinal = true;
+    }
+  }
+
+  return {
+    jawaban: formattedJawaban,
+    isFinal: isFinal,
+    hasDraft: Object.keys(formattedJawaban).length > 0
+  };
+}
+
 
 /**
  * Cek apakah periode pengisian sedang terbuka untuk OPD tertentu.

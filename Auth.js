@@ -16,8 +16,16 @@ function prosesLogin(username, password) {
         let sudahIsi = false;
         if (role === "Responden") {
           const escapedOPD = Firebase.escapeKey(nama_opd);
-          const jawabanOPD = Firebase.get(`jawaban/${escapedOPD}`);
-          sudahIsi = (jawabanOPD && Object.keys(jawabanOPD).length > 0);
+          const statusData = Firebase.get(`status_pengisian/${escapedOPD}`);
+          if (statusData && statusData.status === "SUBMITTED") {
+            sudahIsi = true;
+          } else if (!statusData) {
+            // Legacy check: jika node status_pengisian belum ada
+            const jawabanOPD = Firebase.get(`jawaban/${escapedOPD}`);
+            if (jawabanOPD && Object.keys(jawabanOPD).length >= 11) {
+              sudahIsi = true;
+            }
+          }
         }
 
         return { 
@@ -46,10 +54,20 @@ function prosesLogin(username, password) {
       
       let sudahIsi = false;
       if (role === "Responden") {
-        const jawabanSheet = ss.getSheetByName("Jawaban");
-        if (jawabanSheet && jawabanSheet.getLastRow() > 1) {
-          const dataJawaban = jawabanSheet.getDataRange().getValues();
-          sudahIsi = dataJawaban.some(row => row[1] === nama_opd);
+        const statusSheet = ss.getSheetByName("Status_Pengisian");
+        if (statusSheet && statusSheet.getLastRow() > 1) {
+          const sData = statusSheet.getDataRange().getValues();
+          const row = sData.find(r => r[0] === nama_opd);
+          if (row && row[1] === "SUBMITTED") {
+            sudahIsi = true;
+          }
+        } else {
+          const jawabanSheet = ss.getSheetByName("Jawaban");
+          if (jawabanSheet && jawabanSheet.getLastRow() > 1) {
+            const dataJawaban = jawabanSheet.getDataRange().getValues();
+            const count = dataJawaban.filter(row => row[1] === nama_opd).length;
+            if (count >= 11) sudahIsi = true;
+          }
         }
       }
 

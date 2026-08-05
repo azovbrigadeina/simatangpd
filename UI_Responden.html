@@ -3,7 +3,12 @@
     <span class="navbar-brand fw-bold">
       <i class="bi bi-building"></i> <span id="opd-name"></span>
     </span>
-    <button class="btn btn-brut btn-sm" onclick="window.top.location.href = 'https://bagorsetdamuarojambi.blogspot.com/'">LOGOUT</button>
+    <div class="d-flex align-items-center gap-2">
+      <button id="btn-save-draft-top" class="btn btn-brut btn-brut-green btn-sm hidden" onclick="simpanDraft()">
+        <i class="bi bi-floppy me-1"></i> SIMPAN SEMENTARA
+      </button>
+      <button class="btn btn-brut btn-sm" onclick="window.top.location.href = 'https://bagorsetdamuarojambi.blogspot.com/'">LOGOUT</button>
+    </div>
   </nav>
   
   <div class="sticky-top shadow-sm">
