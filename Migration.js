@@ -358,3 +358,57 @@ function pullFirebaseToSheetsInteractive() {
   }
 }
 
+/**
+ * Fungsi Backfill / Migrasi Satu-Kali-Jalan
+ * Mengkloning folder bukti dukung untuk seluruh OPD yang sudah berstatus SUBMITTED ke Drive Admin.
+ */
+function backfillSnapshotSubmittedOPD() {
+  if (!SETTINGS.USE_FIREBASE) {
+    Logger.log("Sistem tidak menggunakan Firebase, backfill dilewati.");
+    return "Hanya berlaku untuk penggunaan Firebase.";
+  }
+
+  const statusData = Firebase.get("status_pengisian") || {};
+  const allJawaban = Firebase.get("jawaban") || {};
+
+  let processedCount = 0;
+  let skippedCount = 0;
+  let errorCount = 0;
+
+  Object.entries(statusData).forEach(([opdEscaped, s]) => {
+    if (s && s.status === "SUBMITTED") {
+      const opdName = Firebase.unescapeKey(opdEscaped);
+      const jawabanOPD = allJawaban[opdEscaped] || {};
+      
+      const updates = {};
+      let hasUpdate = false;
+
+      Object.entries(jawabanOPD).forEach(([idSoal, j]) => {
+        if (j && j.link && j.link.trim() !== "") {
+          if (!j.link_arsip) {
+            const linkArsip = snapshotDriveFolder(opdName, j.link);
+            if (linkArsip) {
+              updates[`${idSoal}/link_arsip`] = linkArsip;
+              hasUpdate = true;
+            } else {
+              errorCount++;
+            }
+          } else {
+            skippedCount++;
+          }
+        }
+      });
+
+      if (hasUpdate) {
+        Firebase.patch(`jawaban/${opdEscaped}`, updates);
+        processedCount++;
+        Logger.log(`Backfill snapshot berhasil untuk OPD: ${opdName}`);
+      }
+    }
+  });
+
+  const resultMsg = `Proses Backfill Selesai! OPD diproses: ${processedCount}, Gagal: ${errorCount}, Sudah Terarsip: ${skippedCount}`;
+  Logger.log(resultMsg);
+  return resultMsg;
+}
+

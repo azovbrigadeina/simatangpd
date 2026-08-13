@@ -253,12 +253,15 @@ function getJawabanByOPD(namaOPD) {
       const verif = verifOPD[idSoal];
       const rawIdSoal = Firebase.unescapeKey(idSoal);
       
+      const effectiveLink = j.link_arsip || j.link || "";
       return {
         id_soal: rawIdSoal,
         pertanyaan: detail ? detail.pertanyaan : "Variabel Tidak Ditemukan",
         indikator: detail ? detail.indikator : "-",
         skala_responden: level,
-        link: j.link || "",
+        link: effectiveLink,
+        link_original: j.link || "",
+        is_arsip: Boolean(j.link_arsip),
         skala_evaluator: verif ? (verif.skala_evaluator !== undefined ? verif.skala_evaluator : "") : "",
         catatan: verif ? (verif.catatan_evaluator || "") : "",
         skala_provinsi: verif ? (verif.skala_provinsi !== undefined ? verif.skala_provinsi : "") : "",

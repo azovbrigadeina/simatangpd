@@ -36,22 +36,201 @@ function getPertanyaan() {
   });
 }
 
+function parseDriveUrl(url) {
+  if (!url) return null;
+  const folderMatch = url.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  if (folderMatch) {
+    return { type: 'FOLDER', id: folderMatch[1] };
+  }
+  const fileMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (fileMatch) {
+    return { type: 'FILE', id: fileMatch[1] };
+  }
+  return null;
+}
+
+function extractDriveFolderId(url) {
+  const parsed = parseDriveUrl(url);
+  return parsed ? parsed.id : null;
+}
+
+function getOrCreateArchiveParentFolder() {
+  if (SETTINGS.DRIVE_ARCHIVE_FOLDER_ID) {
+    try {
+      return DriveApp.getFolderById(SETTINGS.DRIVE_ARCHIVE_FOLDER_ID);
+    } catch (e) {
+      Logger.log("Folder SETTINGS.DRIVE_ARCHIVE_FOLDER_ID tidak ditemukan, menggunakan root.");
+    }
+  }
+
+  const folderName = "[SIMATANG] Arsip Bukti Dukung";
+  const existingFolders = DriveApp.getFoldersByName(folderName);
+  if (existingFolders.hasNext()) {
+    return existingFolders.next();
+  }
+  return DriveApp.createFolder(folderName);
+}
+
+function snapshotDriveFolder(opdName, originalDriveUrl) {
+  if (!originalDriveUrl) return null;
+  const parsed = parseDriveUrl(originalDriveUrl);
+  if (!parsed) return null;
+
+  try {
+    const parentArchive = getOrCreateArchiveParentFolder();
+    const cleanOpd = opdName.toString().trim();
+
+    if (parsed.type === 'FOLDER') {
+      try {
+        const sourceFolder = DriveApp.getFolderById(parsed.id);
+        const originalFolderName = sourceFolder.getName();
+        const targetFolderName = `[${cleanOpd}] - ${originalFolderName}`;
+        const targetFolder = parentArchive.createFolder(targetFolderName);
+        
+        const files = sourceFolder.getFiles();
+        while (files.hasNext()) {
+          const file = files.next();
+          file.makeCopy(file.getName(), targetFolder);
+        }
+        return targetFolder.getUrl();
+      } catch (e) {
+        parsed.type = 'FILE';
+      }
+    }
+
+    if (parsed.type === 'FILE') {
+      const sourceFile = DriveApp.getFileById(parsed.id);
+      const originalFileName = sourceFile.getName();
+      
+      const targetFolderName = `[${cleanOpd}] - File Bukti Dukung`;
+      let targetFolder;
+      const existingFolders = parentArchive.getFoldersByName(targetFolderName);
+      if (existingFolders.hasNext()) {
+        targetFolder = existingFolders.next();
+      } else {
+        targetFolder = parentArchive.createFolder(targetFolderName);
+      }
+
+      const copiedFile = sourceFile.makeCopy(originalFileName, targetFolder);
+      return copiedFile.getUrl();
+    }
+
+    return null;
+  } catch (e) {
+    Logger.log("Gagal melakukan snapshot Drive item: " + e.toString());
+    return null;
+  }
+}
+
+/**
+ * Memproses antrean snapshot latar belakang (Background Job)
+ */
+function processPendingSnapshotQueue() {
+  if (!SETTINGS.USE_FIREBASE) return;
+  
+  const queue = Firebase.get("snapshot_queue") || {};
+  const entries = Object.entries(queue);
+  if (entries.length === 0) return;
+
+  entries.forEach(([opdEscaped, item]) => {
+    try {
+      const opdName = item.opd || Firebase.unescapeKey(opdEscaped);
+      const jawaban = item.jawaban || [];
+      const existingJawaban = Firebase.get(`jawaban/${opdEscaped}`) || {};
+
+      const updates = {};
+      jawaban.forEach(j => {
+        if (j && j.id && j.link) {
+          const escapedId = Firebase.escapeKey(j.id);
+          const prevItem = existingJawaban[escapedId] || {};
+          let linkArsip = prevItem.link_arsip || "";
+
+          if (!linkArsip || j.link.trim() !== (prevItem.link || "").trim()) {
+            const newArsip = snapshotDriveFolder(opdName, j.link);
+            if (newArsip) linkArsip = newArsip;
+          }
+
+          if (linkArsip) {
+            updates[`${escapedId}/link_arsip`] = linkArsip;
+          }
+        }
+      });
+
+      if (Object.keys(updates).length > 0) {
+        Firebase.patch(`jawaban/${opdEscaped}`, updates);
+      }
+
+      Firebase.remove(`snapshot_queue/${opdEscaped}`);
+    } catch (e) {
+      Logger.log("Error processing snapshot queue item: " + e.toString());
+    }
+  });
+
+  cleanupSnapshotTriggers();
+}
+
+/**
+ * Membuat trigger 1-kali jalan di latar belakang setelah 1 detik
+ */
+function scheduleSnapshotQueueTrigger() {
+  try {
+    const triggers = ScriptApp.getProjectTriggers();
+    const existing = triggers.find(t => t.getHandlerFunction() === "processPendingSnapshotQueue");
+    if (!existing) {
+      ScriptApp.newTrigger("processPendingSnapshotQueue")
+        .timeBased()
+        .after(1000)
+        .create();
+    }
+  } catch (e) {
+    Logger.log("Gagal membuat trigger snapshot: " + e.toString());
+    processPendingSnapshotQueue();
+  }
+}
+
+/**
+ * Membersihkan trigger sementara setelah antrean selesai
+ */
+function cleanupSnapshotTriggers() {
+  try {
+    const triggers = ScriptApp.getProjectTriggers();
+    triggers.forEach(t => {
+      if (t.getHandlerFunction() === "processPendingSnapshotQueue") {
+        ScriptApp.deleteTrigger(t);
+      }
+    });
+  } catch (e) {}
+}
+
 function simpanSemuaJawaban(payload) {
   const isFinal = payload.isFinal !== undefined ? payload.isFinal : true;
   const ts = new Date().toISOString();
 
   if (SETTINGS.USE_FIREBASE) {
     const opd = Firebase.escapeKey(payload.opd);
+    const existingJawaban = Firebase.get(`jawaban/${opd}`) || {};
     
     const updates = {};
+    const validLinkJawaban = [];
+
     payload.jawaban.forEach(item => {
       if (item && item.id && (item.level || item.link)) {
         const escapedId = Firebase.escapeKey(item.id);
+        const prevItem = existingJawaban[escapedId] || {};
+        
         updates[escapedId] = {
           timestamp: ts,
           level: Number(item.level || 0),
-          link: item.link || ""
+          link: item.link || "",
+          link_arsip: prevItem.link_arsip || ""
         };
+
+        if (isFinal && item.link && item.link.trim() !== "") {
+          validLinkJawaban.push({
+            id: item.id,
+            link: item.link.trim()
+          });
+        }
       }
     });
     
@@ -63,6 +242,16 @@ function simpanSemuaJawaban(payload) {
       status: isFinal ? "SUBMITTED" : "DRAFT",
       updated_at: ts
     });
+
+    // Jika Submit Final dan ada link yang perlu di-snapshot, masukkan ke antrean asinkron
+    if (isFinal && validLinkJawaban.length > 0) {
+      Firebase.put(`snapshot_queue/${opd}`, {
+        opd: payload.opd,
+        timestamp: ts,
+        jawaban: validLinkJawaban
+      });
+      scheduleSnapshotQueueTrigger();
+    }
     
     return "Berhasil";
   }
@@ -135,7 +324,8 @@ function getJawabanResponden(namaOPD) {
       formattedJawaban[idSoal] = {
         id: idSoal,
         level: j.level !== undefined ? j.level : "",
-        link: j.link || ""
+        link: j.link || "",
+        link_arsip: j.link_arsip || ""
       };
     });
 

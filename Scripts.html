@@ -789,8 +789,12 @@
         ` 
         : `<div class="badge-resp"><small class="d-block text-muted">Prov:</small><span class="badge bg-success fs-6">${it.skala_provinsi || '-'}</span></div>`;
 
+      const archiveBadge = it.is_arsip 
+        ? `<span class="badge bg-success ms-2" title="Bukti dukung telah diarsip & dikunci di Drive Admin"><i class="bi bi-shield-check me-1"></i>🔒 Snapshot Admin</span>` 
+        : '';
+
       const linkHtml = it.link 
-        ? `<a href="${it.link}" target="_blank" class="btn btn-sm btn-outline-secondary text-truncate" style="max-width: 250px;"><i class="bi bi-link-45deg me-1"></i> ${it.link}</a>`
+        ? `<a href="${it.link}" target="_blank" class="btn btn-sm btn-outline-secondary text-truncate" style="max-width: 250px;"><i class="bi bi-link-45deg me-1"></i> ${it.link}</a>${archiveBadge}`
         : `<span class="badge bg-light text-muted border">Tidak Ada Link</span>`;
 
       return `

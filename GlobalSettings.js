@@ -10,5 +10,8 @@ const SETTINGS = {
   // Konfigurasi Firebase
   USE_FIREBASE: true, // Ubah ke true untuk mulai menggunakan Firebase Realtime Database
   FIREBASE_DB_URL: 'https://simatang-pd-default-rtdb.asia-southeast1.firebasedatabase.app', // Masukkan URL Firebase Realtime Database Anda di sini
-  FIREBASE_SECRET: 'kjlputyOgb6lcVw2qkcENTXGYRSOFLHCFRfBlJ3d'  // Masukkan Database Secret Firebase Anda di sini (atau simpan di Script Properties)
+  FIREBASE_SECRET: 'kjlputyOgb6lcVw2qkcENTXGYRSOFLHCFRfBlJ3d',  // Masukkan Database Secret Firebase Anda di sini (atau simpan di Script Properties)
+  
+  // Folder ID tempat penampung snapshot bukti dukung (jika kosong, sistem akan otomatis membuat folder '[SIMATANG] Arsip Bukti Dukung')
+  DRIVE_ARCHIVE_FOLDER_ID: ''
 };
