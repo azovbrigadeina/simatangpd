@@ -129,12 +129,18 @@
         <div id="v-det" class="hidden">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <button class="btn btn-brut btn-sm" onclick="kembaliKeGrid()"><i class="bi bi-arrow-left me-1"></i> KEMBALI KE DAFTAR</button>
+            <div class="d-flex gap-2">
+              <button class="btn btn-brut btn-brut-yellow btn-sm" id="v-btn-draft-top" onclick="kirimV(true)"><i class="bi bi-floppy me-1"></i> SIMPAN SEMENTARA</button>
+              <button class="btn btn-brut btn-brut-green btn-sm" id="v-btn-save-top" onclick="kirimV(false)"><i class="bi bi-check-circle me-1"></i> SIMPAN VERIFIKASI</button>
+            </div>
           </div>
           <div id="v-list"></div>
-          <div class="text-end mt-4">
-            <button class="btn btn-brut btn-brut-green px-5" id="v-btn-save" onclick="kirimV()">💾 SIMPAN VERIFIKASI</button>
+          <div class="d-flex justify-content-end gap-3 mt-4">
+            <button class="btn btn-brut btn-brut-yellow px-4" id="v-btn-draft" onclick="kirimV(true)">💾 SIMPAN SEMENTARA (DRAFT)</button>
+            <button class="btn btn-brut btn-brut-green px-5" id="v-btn-save" onclick="kirimV(false)">✅ SIMPAN VERIFIKASI FINAL</button>
           </div>
         </div>
+
       </div>
       
       <div class="tab-pane fade" id="t-hasil">

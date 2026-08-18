@@ -825,22 +825,27 @@
       `;
     }).join('');
 
-    // Update status tombol simpan verifikasi
+    // Update status tombol simpan verifikasi & draft
     const btnSave = document.getElementById('v-btn-save');
-    if (btnSave) {
+    const btnDraft = document.getElementById('v-btn-draft');
+    const btnSaveTop = document.getElementById('v-btn-save-top');
+    const btnDraftTop = document.getElementById('v-btn-draft-top');
+
+    [btnSave, btnDraft, btnSaveTop, btnDraftTop].forEach(btn => {
+      if (!btn) return;
       if (isDraft) {
-        btnSave.disabled = true;
-        btnSave.className = "btn btn-brut btn-secondary px-5";
-        btnSave.style.cursor = "not-allowed";
-        btnSave.style.opacity = "0.75";
-        btnSave.innerHTML = '🔒 DIKUNCI (STATUS OPD MASIH DRAFT)';
+        btn.disabled = true;
+        btn.style.cursor = "not-allowed";
+        btn.style.opacity = "0.75";
       } else {
-        btnSave.disabled = false;
-        btnSave.className = "btn btn-brut btn-brut-green px-5";
-        btnSave.style.cursor = "pointer";
-        btnSave.style.opacity = "1";
-        btnSave.innerText = isProv ? '💾 SIMPAN VALIDASI' : '💾 SIMPAN VERIFIKASI';
+        btn.disabled = false;
+        btn.style.cursor = "pointer";
+        btn.style.opacity = "1";
       }
+    });
+
+    if (btnSave) {
+      btnSave.innerText = isDraft ? '🔒 DIKUNCI (OPD MASIH DRAFT)' : (isProv ? '✅ SIMPAN VALIDASI FINAL' : '✅ SIMPAN VERIFIKASI FINAL');
     }
   }
 
@@ -880,7 +885,7 @@
     });
   }
 
-  function kirimV() { 
+  function kirimV(isDraftSave) { 
     if (currentSelectedOPDStatus === 'DRAFT') {
       return Swal.fire({
         icon: 'warning',
@@ -892,19 +897,45 @@
     const opdName = document.getElementById('v-det').dataset.currentOpd;
     if (!opdName) return Swal.fire('Error', 'OPD tidak ditemukan', 'error');
     const isProv = sess.role === 'Provinsi';
-    Swal.fire({title:'Menyimpan...', didOpen:()=>Swal.showLoading()}); 
-    google.script.run.withSuccessHandler(()=> {
-      Swal.fire({
-        icon: 'success', title: 'Tersimpan', text: isProv ? 'Validasi berhasil diperbarui.' : 'Verifikasi berhasil diperbarui.',
-        showConfirmButton: true, confirmButtonText: 'Kembali ke Daftar',
-        showCancelButton: true, cancelButtonText: 'Tetap di Halaman Ini'
-      }).then(result => {
-        if (result.isConfirmed) kembaliKeGrid();
-      });
-    })
-      .withFailureHandler(err => { Swal.fire('Error', (isProv ? 'Gagal menyimpan validasi: ' : 'Gagal menyimpan verifikasi: ') + (err.message || err), 'error'); })
+    
+    Swal.fire({
+      title: isDraftSave ? 'Menyimpan Draf Sementara...' : 'Menyimpan Final...', 
+      didOpen: () => Swal.showLoading()
+    }); 
+    
+    google.script.run
+      .withSuccessHandler(() => {
+        if (isDraftSave) {
+          Swal.fire({
+            icon: 'success', 
+            title: 'Draf Tersimpan', 
+            text: isProv 
+              ? 'Draft validasi provinsi berhasil disimpan sementara. Anda dapat melanjutkan penilaian kapan saja!' 
+              : 'Draft verifikasi kabupaten berhasil disimpan sementara. Anda dapat melanjutkan penilaian kapan saja!',
+            timer: 2000, 
+            showConfirmButton: true, 
+            confirmButtonText: 'OK'
+          });
+        } else {
+          Swal.fire({
+            icon: 'success', 
+            title: 'Berhasil Disimpan', 
+            text: isProv ? 'Validasi berhasil diperbarui secara final.' : 'Verifikasi berhasil diperbarui secara final.',
+            showConfirmButton: true, 
+            confirmButtonText: 'Kembali ke Daftar',
+            showCancelButton: true, 
+            cancelButtonText: 'Tetap di Halaman Ini'
+          }).then(result => {
+            if (result.isConfirmed) kembaliKeGrid();
+          });
+        }
+      })
+      .withFailureHandler(err => { 
+        Swal.fire('Error', (isProv ? 'Gagal menyimpan validasi: ' : 'Gagal menyimpan verifikasi: ') + (err.message || err), 'error'); 
+      })
       .simpanVerifikasi({opd: opdName, items: vData, role: sess.role}); 
   }
+
 
   function loadHasil() {
     google.script.run.withSuccessHandler(res => {
