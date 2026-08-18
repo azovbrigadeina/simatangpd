@@ -1516,36 +1516,28 @@
   function populatePublicOpdDropdown() {
     const select = document.getElementById('select-public-opd');
     if (!select) return;
-    select.innerHTML = '<option value="">-- Pilih OPD --</option>';
+    select.innerHTML = '<option value="">-- Memuat daftar OPD... --</option>';
 
-    if (typeof SETTINGS !== 'undefined' && SETTINGS.USE_FIREBASE) {
-      const users = typeof Firebase !== 'undefined' ? Firebase.getCachedMasterUser() : null;
-      if (users) {
-        const opds = [...new Set(Object.values(users).map(u => u.opd || u.username).filter(Boolean))].sort();
-        opds.forEach(opd => {
-          const opt = document.createElement('option');
-          opt.value = opd;
-          opt.textContent = opd;
-          select.appendChild(opt);
-        });
-        return;
-      }
-    }
-
-    // Fallback via google.script.run
     if (typeof google !== 'undefined' && google.script && google.script.run) {
-      google.script.run.withSuccessHandler(function(list) {
-        if (list && Array.isArray(list)) {
-          list.forEach(opd => {
-            const opt = document.createElement('option');
-            opt.value = opd;
-            opt.textContent = opd;
-            select.appendChild(opt);
-          });
-        }
-      }).getOpdList();
+      google.script.run
+        .withSuccessHandler(function(list) {
+          select.innerHTML = '<option value="">-- Pilih OPD --</option>';
+          if (list && Array.isArray(list)) {
+            list.forEach(opd => {
+              const opt = document.createElement('option');
+              opt.value = opd;
+              opt.textContent = opd;
+              select.appendChild(opt);
+            });
+          }
+        })
+        .withFailureHandler(function(err) {
+          select.innerHTML = '<option value="">-- Gagal memuat daftar OPD --</option>';
+        })
+        .getPublicOpdList();
     }
   }
+
 
   function loadPublicOpdHasil() {
     const select = document.getElementById('select-public-opd');

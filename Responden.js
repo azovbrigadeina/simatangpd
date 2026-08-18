@@ -562,3 +562,29 @@ function getPublicEvaluasiOpd(opdName) {
   };
 }
 
+/**
+ * Mengambil daftar OPD publik dari Firebase atau Google Sheets
+ */
+function getPublicOpdList() {
+  if (SETTINGS.USE_FIREBASE) {
+    const users = Firebase.get("users") || {};
+    const opds = [...new Set(Object.values(users).map(u => u.nama_opd || u.opd || u.username).filter(Boolean))].sort();
+    if (opds.length > 0) return opds;
+  }
+  
+  if (typeof getListOPD === 'function') {
+    return getListOPD();
+  }
+  
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("Master_OPD") || ss.getSheetByName("Users");
+  if (!sheet) return [];
+  const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 4).getValues();
+  return [...new Set(data.map(row => row[3] || row[0]).filter(Boolean))].sort();
+}
+
+function getOpdList() {
+  return getPublicOpdList();
+}
+
+
