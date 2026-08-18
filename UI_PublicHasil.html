@@ -1,0 +1,92 @@
+<div id="p-public-hasil" class="hidden" style="min-height: 100vh; background: var(--bg-grid); padding-bottom: 50px;">
+  <!-- Header Bar -->
+  <nav class="navbar navbar-dark bg-black px-4 mb-4" style="border-bottom: var(--brut-border);">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+      <button class="btn btn-brut btn-sm btn-brut-pink" onclick="closePublicHasil()">
+        <i class="bi bi-arrow-left me-1"></i> BERANDA
+      </button>
+      <span class="navbar-brand fw-bold text-uppercase fs-6 m-0" id="pub-hasil-nav-title">
+        PORTAL HASIL EVALUASI KEMATANGAN OPD TAHUN <span class="pub-year-txt">2026</span>
+      </span>
+      <button class="btn btn-brut btn-sm btn-brut-green" onclick="window.print()">
+        <i class="bi bi-printer me-1"></i> CETAK HASIL
+      </button>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width: 950px;">
+    <!-- Title Banner -->
+    <div class="text-center mb-4">
+      <h3 class="fw-bold text-uppercase d-inline-block px-3 py-2" style="background: var(--accent); border: 3px solid #000; box-shadow: var(--brut-shadow-sm);">
+        📋 PORTAL HASIL EVALUASI KEMATANGAN OPD <span class="pub-year-txt">2026</span>
+      </h3>
+      <p class="small text-muted fw-bold mt-1">Transparansi Penilaian Mandiri, Evaluator Organisasi, dan Evaluator Provinsi</p>
+    </div>
+
+    <!-- Dropdown Selector OPD & Filter Card -->
+    <div class="brut-card p-4 mb-4" style="background: white;">
+      <div class="row align-items-center g-3">
+        <div class="col-md-7">
+          <label for="select-public-opd" class="form-label fw-bold text-uppercase mb-1">PILIH PERANGKAT DAERAH (OPD):</label>
+          <select id="select-public-opd" class="form-select brut-input fw-bold" onchange="loadPublicOpdHasil()">
+            <option value="">-- Pilih OPD --</option>
+          </select>
+        </div>
+        <div class="col-md-5 text-md-end">
+          <label class="form-label fw-bold text-uppercase mb-1 d-block">TAMPILKAN INDIKATOR:</label>
+          <div class="btn-group w-100" role="group">
+            <input type="radio" class="btn-check" name="pubFilter" id="pubFilterAll" value="all" checked onchange="applyPublicFilter()">
+            <label class="btn btn-outline-dark btn-sm fw-bold" for="pubFilterAll">Semua Indikator</label>
+
+            <input type="radio" class="btn-check" name="pubFilter" id="pubFilterNotes" value="notes" onchange="applyPublicFilter()">
+            <label class="btn btn-outline-dark btn-sm fw-bold" for="pubFilterNotes">Ada Catatan saja</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Placeholder Message (Before OPD Selected) -->
+    <div id="pub-placeholder" class="brut-card text-center py-5" style="background: white;">
+      <i class="bi bi-building-exclamation fs-1 text-secondary mb-2 d-block"></i>
+      <h5 class="fw-bold">Silakan Pilih Perangkat Daerah (OPD) terlebih dahulu</h5>
+      <p class="small text-muted mb-0">Hasil nilai dan catatan evaluator akan ditampilkan di sini.</p>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="pub-loading" class="text-center py-5 hidden">
+      <div class="spinner-border text-black mb-2" role="status"></div>
+      <h6 class="fw-bold text-uppercase">Memuat data evaluasi real-time...</h6>
+    </div>
+
+    <!-- Main Results Section (Visible after selecting OPD) -->
+    <div id="pub-results-content" class="hidden">
+      <!-- 3 Summary Index Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="brut-card text-center h-100" style="background: #fff9db;">
+            <span class="badge bg-black text-white mb-2">PENILAIAN MANDIRI</span>
+            <h2 id="pub-idx-mandiri" class="fw-bold m-0" style="font-size: 2.5rem;">0.00</h2>
+            <span id="pub-lbl-mandiri" class="small fw-bold text-uppercase mt-1 d-block">-</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="brut-card text-center h-100" style="background: #e7f5ff;">
+            <span class="badge bg-primary text-white mb-2">EVALUATOR ORGANISASI</span>
+            <h2 id="pub-idx-eval" class="fw-bold m-0" style="font-size: 2.5rem;">-</h2>
+            <span id="pub-lbl-eval" class="small fw-bold text-uppercase mt-1 d-block">-</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="brut-card text-center h-100" style="background: #ebfbee;">
+            <span class="badge bg-success text-white mb-2">EVALUATOR PROVINSI</span>
+            <h2 id="pub-idx-prov" class="fw-bold m-0" style="font-size: 2.5rem;">-</h2>
+            <span id="pub-lbl-prov" class="small fw-bold text-uppercase mt-1 d-block">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicators List Container -->
+      <div id="pub-soal-container" class="d-flex flex-column gap-3"></div>
+    </div>
+  </div>
+</div>
