@@ -33,14 +33,18 @@
           </select>
         </div>
         <div class="col-md-5 text-md-end">
-          <label class="form-label fw-bold text-uppercase mb-1 d-block">TAMPILKAN INDIKATOR:</label>
+          <label class="form-label fw-bold text-uppercase mb-1 d-block">TAMPILKAN VARIABEL:</label>
           <div class="btn-group w-100" role="group">
             <input type="radio" class="btn-check" name="pubFilter" id="pubFilterAll" value="all" checked onchange="applyPublicFilter()">
-            <label class="btn btn-outline-dark btn-sm fw-bold" for="pubFilterAll">Semua Indikator</label>
+            <label class="btn btn-outline-dark btn-sm fw-bold" for="pubFilterAll">Semua 11 Variabel</label>
+
+            <input type="radio" class="btn-check" name="pubFilter" id="pubFilterDiff" value="diff" onchange="applyPublicFilter()">
+            <label class="btn btn-outline-danger btn-sm fw-bold" for="pubFilterDiff">⚠️ Perbedaan Nilai</label>
 
             <input type="radio" class="btn-check" name="pubFilter" id="pubFilterNotes" value="notes" onchange="applyPublicFilter()">
-            <label class="btn btn-outline-dark btn-sm fw-bold" for="pubFilterNotes">Ada Catatan saja</label>
+            <label class="btn btn-outline-dark btn-sm fw-bold" for="pubFilterNotes">💬 Ada Catatan</label>
           </div>
+
         </div>
       </div>
     </div>

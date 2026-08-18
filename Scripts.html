@@ -1641,6 +1641,9 @@
     const filterVal = filterRadio ? filterRadio.value : 'all';
 
     const filtered = currentPublicData.items.filter(item => {
+      if (filterVal === 'diff') {
+        return item.is_different_eval || item.is_different_prov;
+      }
       if (filterVal === 'notes') {
         return (item.catatan_evaluator && item.catatan_evaluator.trim() !== '') ||
                (item.catatan_provinsi && item.catatan_provinsi.trim() !== '');
@@ -1649,42 +1652,80 @@
     });
 
     if (filtered.length === 0) {
-      container.innerHTML = '<div class="brut-card text-center py-4 bg-white"><p class="mb-0 fw-bold">Tidak ada indikator yang sesuai dengan filter.</p></div>';
+      container.innerHTML = '<div class="brut-card text-center py-4 bg-white"><p class="mb-0 fw-bold">Tidak ada variabel yang sesuai dengan filter.</p></div>';
       return;
     }
 
     filtered.forEach(item => {
       const card = document.createElement('div');
-      card.className = 'brut-card p-3 bg-white';
       
+      const hasDiscrepancy = item.is_different_eval || item.is_different_prov;
+      
+      // Styling khusus untuk variabel yang nilainya berbeda (Discrepancy Highlight)
+      if (hasDiscrepancy) {
+        card.className = 'brut-card p-3 mb-3';
+        card.style.background = '#fff5f5';
+        card.style.border = '3px solid #dc3545';
+        card.style.boxShadow = '6px 6px 0px #dc3545';
+      } else {
+        card.className = 'brut-card p-3 mb-3 bg-white';
+      }
+      
+      const diffBadgeHeader = hasDiscrepancy 
+        ? `<span class="badge bg-danger text-white ms-2 px-2 py-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> PERBEDAAN NILAI</span>` 
+        : '';
+
       const catEvalHtml = item.catatan_evaluator 
-        ? `<div class="p-2 mt-2 bg-light border border-dark rounded small"><b>Catatan Evaluator Organisasi:</b> ${escapeHtml(item.catatan_evaluator)}</div>`
+        ? `<div class="p-2 mt-2 bg-white border border-dark rounded small"><b>Catatan Evaluator Organisasi:</b> ${escapeHtml(item.catatan_evaluator)}</div>`
         : `<div class="text-muted small mt-1"><i>Catatan Evaluator Organisasi: -</i></div>`;
 
       const catProvHtml = item.catatan_provinsi
-        ? `<div class="p-2 mt-2 bg-light border border-dark rounded small"><b>Catatan Evaluator Provinsi:</b> ${escapeHtml(item.catatan_provinsi)}</div>`
+        ? `<div class="p-2 mt-2 bg-white border border-dark rounded small"><b>Catatan Evaluator Provinsi:</b> ${escapeHtml(item.catatan_provinsi)}</div>`
         : `<div class="text-muted small mt-1"><i>Catatan Evaluator Provinsi: -</i></div>`;
 
       const buktiHtml = item.link_bukti 
-        ? `<a href="${escapeHtml(item.link_bukti)}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2 mt-1 fw-bold"><i class="bi bi-link-45deg"></i> Bukti Dukung</a>`
-        : `<span class="small text-muted mt-1 d-inline-block">Bukti Dukung: -</span>`;
+        ? `<a href="${escapeHtml(item.link_bukti)}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2 mt-2 fw-bold d-inline-block"><i class="bi bi-link-45deg"></i> Bukti Dukung</a>`
+        : `<span class="small text-muted mt-2 d-inline-block">Bukti Dukung: -</span>`;
+
+      // Highlight Box Evaluator Organisasi jika ada perbedaan
+      const evalBoxStyle = item.is_different_eval 
+        ? 'background: #ffe3e3; border: 2px solid #dc3545 !important;' 
+        : 'background: #e7f5ff; border: 2px solid #000 !important;';
+
+      const evalBadgeClass = item.is_different_eval 
+        ? 'bg-danger text-white' 
+        : (item.skala_evaluator !== "" ? 'bg-primary' : 'bg-secondary');
+
+      // Highlight Box Evaluator Provinsi jika ada perbedaan
+      const provBoxStyle = item.is_different_prov 
+        ? 'background: #ffe3e3; border: 2px solid #dc3545 !important;' 
+        : 'background: #ebfbee; border: 2px solid #000 !important;';
+
+      const provBadgeClass = item.is_different_prov 
+        ? 'bg-danger text-white' 
+        : (item.skala_provinsi !== "" ? 'bg-success' : 'bg-secondary');
 
       card.innerHTML = `
-        <div class="d-flex justify-content-between align-items-start mb-2 pb-2 border-bottom border-black">
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-black">
           <div>
-            <span class="badge bg-black text-white me-2">No. ${item.no}</span>
-            <span class="fw-bold text-uppercase">${escapeHtml(item.indikator || item.id_soal)}</span>
+            <span class="badge bg-black text-white me-2 fs-6">Variabel ${item.no}</span>
+            <span class="fw-bold text-uppercase fs-6">${escapeHtml(item.indikator || item.id_soal)}</span>
+            ${diffBadgeHeader}
           </div>
           <span class="badge bg-secondary">Bobot: ${item.bobot || 0}</span>
         </div>
-        <p class="small mb-3 fw-semibold">${escapeHtml(item.pertanyaan)}</p>
+
+        <div class="p-3 mb-3 rounded border border-2 border-black" style="background: #ffffff;">
+          <small class="d-block text-muted fw-bold text-uppercase mb-1"><i class="bi bi-chat-quote-fill me-1"></i>Jawaban yang Dipilih Responden Mandiri:</small>
+          <p class="mb-0 fw-bold text-dark fs-6" style="line-height: 1.4;">"${escapeHtml(item.pertanyaan_terpilih)}"</p>
+        </div>
         
         <div class="row g-2">
-          <!-- Mandiri -->
+          <!-- Mandiri Responden -->
           <div class="col-md-4">
             <div class="p-2 border border-2 border-black rounded h-100" style="background: #fff9db;">
               <div class="d-flex justify-content-between align-items-center">
-                <span class="small fw-bold text-uppercase">Mandiri</span>
+                <span class="small fw-bold text-uppercase">Nilai Responden</span>
                 <span class="badge bg-dark fs-6">${item.skala_responden !== "" ? 'Level ' + item.skala_responden : '-'}</span>
               </div>
               ${buktiHtml}
@@ -1693,11 +1734,12 @@
           
           <!-- Evaluator Organisasi -->
           <div class="col-md-4">
-            <div class="p-2 border border-2 border-black rounded h-100" style="background: #e7f5ff;">
+            <div class="p-2 rounded h-100" style="${evalBoxStyle}">
               <div class="d-flex justify-content-between align-items-center">
                 <span class="small fw-bold text-uppercase">Evaluator Organisasi</span>
-                <span class="badge ${item.skala_evaluator !== "" ? 'bg-primary' : 'bg-secondary'} fs-6">
+                <span class="badge ${evalBadgeClass} fs-6">
                   ${item.skala_evaluator !== "" ? 'Level ' + item.skala_evaluator : 'Belum Dinilai'}
+                  ${item.is_different_eval ? ' ⚠️' : ''}
                 </span>
               </div>
               ${catEvalHtml}
@@ -1706,11 +1748,12 @@
 
           <!-- Evaluator Provinsi -->
           <div class="col-md-4">
-            <div class="p-2 border border-2 border-black rounded h-100" style="background: #ebfbee;">
+            <div class="p-2 rounded h-100" style="${provBoxStyle}">
               <div class="d-flex justify-content-between align-items-center">
                 <span class="small fw-bold text-uppercase">Evaluator Provinsi</span>
-                <span class="badge ${item.skala_provinsi !== "" ? 'bg-success' : 'bg-secondary'} fs-6">
+                <span class="badge ${provBadgeClass} fs-6">
                   ${item.skala_provinsi !== "" ? 'Level ' + item.skala_provinsi : 'Belum Dinilai'}
+                  ${item.is_different_prov ? ' ⚠️' : ''}
                 </span>
               </div>
               ${catProvHtml}
@@ -1721,6 +1764,7 @@
       container.appendChild(card);
     });
   }
+
 
   function getPredikat(val) {
     const n = parseFloat(val);

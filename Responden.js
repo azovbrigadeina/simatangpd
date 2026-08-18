@@ -510,18 +510,36 @@ function getPublicEvaluasiOpd(opdName) {
     }
   }
 
+  // Kelompokkan masterSoal berdasarkan id_soal (11 Variabel Utama)
+  const groupedSoal = {};
+  masterSoal.forEach(p => {
+    const idSoal = (p[1] || "").toString().trim();
+    if (!groupedSoal[idSoal]) {
+      groupedSoal[idSoal] = {
+        id_soal: idSoal,
+        indikator: p[4] || `Variabel ${idSoal}`,
+        bobot: p[7] || 0,
+        levels: {}
+      };
+    }
+    groupedSoal[idSoal].levels[p[3]] = p[2]; // Map level (1-5) ke deskripsi pertanyaan
+  });
+
   let totalSkalaMandiri = 0, countMandiri = 0;
   let totalSkalaEval = 0, countEval = 0;
   let totalSkalaProv = 0, countProv = 0;
 
-  const items = masterSoal.map(p => {
-    const idSoal = (p[1] || "").toString().trim();
+  const items = Object.values(groupedSoal).map((g, index) => {
+    const idSoal = g.id_soal;
     const idKey = Firebase.escapeKey ? Firebase.escapeKey(idSoal) : idSoal;
     
     const v = verifData[idKey] || verifData[idSoal] || {};
     const j = jawabanData[idKey] || jawabanData[idSoal] || {};
 
-    const skalaResp = v.skala_responden !== undefined ? v.skala_responden : (j.skala || "");
+    const skalaResp = (v.skala_responden !== undefined && v.skala_responden !== "") 
+      ? v.skala_responden 
+      : (j.skala !== undefined ? j.skala : "");
+      
     const skalaEval = v.skala_evaluator !== undefined ? v.skala_evaluator : "";
     const catEval = v.catatan_evaluator || "";
     const skalaProv = v.skala_provinsi !== undefined ? v.skala_provinsi : "";
@@ -531,19 +549,28 @@ function getPublicEvaluasiOpd(opdName) {
     if (skalaEval !== "" && !isNaN(skalaEval)) { totalSkalaEval += Number(skalaEval); countEval++; }
     if (skalaProv !== "" && !isNaN(skalaProv)) { totalSkalaProv += Number(skalaProv); countProv++; }
 
+    // Ambil teks pertanyaan dari level yang dipilih oleh responden
+    const chosenLevel = skalaResp !== "" ? Number(skalaResp) : 0;
+    const chosenText = g.levels[chosenLevel] || (chosenLevel > 0 ? `Jawaban Level ${chosenLevel}` : "Responden belum memilih jawaban pada variabel ini.");
+
+    // Cek apakah ada perbedaan nilai antara responden vs evaluator
+    const isEvalDiff = (skalaEval !== "" && Number(skalaEval) !== Number(skalaResp));
+    const isProvDiff = (skalaProv !== "" && Number(skalaProv) !== Number(skalaResp));
+
     return {
-      no: p[0],
+      no: index + 1,
       id_soal: idSoal,
-      pertanyaan: p[2],
-      level: p[3],
-      indikator: p[4],
-      bobot: p[7],
+      indikator: g.indikator,
+      bobot: g.bobot,
+      pertanyaan_terpilih: chosenText,
       skala_responden: skalaResp,
       link_bukti: j.link || "",
       skala_evaluator: skalaEval,
       catatan_evaluator: catEval,
       skala_provinsi: skalaProv,
-      catatan_provinsi: catProv
+      catatan_provinsi: catProv,
+      is_different_eval: isEvalDiff,
+      is_different_prov: isProvDiff
     };
   });
 
@@ -561,6 +588,7 @@ function getPublicEvaluasiOpd(opdName) {
     items: items
   };
 }
+
 
 /**
  * Mengambil daftar OPD publik dari Firebase atau Google Sheets
