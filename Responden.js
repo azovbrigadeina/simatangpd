@@ -517,13 +517,14 @@ function getPublicEvaluasiOpd(opdName) {
     if (!groupedSoal[idSoal]) {
       groupedSoal[idSoal] = {
         id_soal: idSoal,
-        indikator: p[4] || `Variabel ${idSoal}`,
+        indikator: p[2] || p[4] || `Variabel ${idSoal}`,
         bobot: p[7] || 0,
         levels: {}
       };
     }
-    groupedSoal[idSoal].levels[p[3]] = p[2]; // Map level (1-5) ke deskripsi pertanyaan
+    groupedSoal[idSoal].levels[p[3]] = p[4] || p[2]; // Map level (1-5) ke deskripsi pertanyaan
   });
+
 
   let totalSkalaMandiri = 0, countMandiri = 0;
   let totalSkalaEval = 0, countEval = 0;
