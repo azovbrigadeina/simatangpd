@@ -14,6 +14,7 @@
     
     // Pemuatan statistik publik
     loadPublicStats();
+    updateActiveYearUI();
   });
 
   function toggleSidebar() {
@@ -1482,6 +1483,244 @@
           .hapusPeriodePengisian(tipe);
       }
     });
+  }
+
+  // === PUBLIC OPD EVALUATION PORTAL ===
+  let currentPublicData = null;
+
+  function updateActiveYearUI() {
+    const year = new Date().getFullYear();
+    const els = document.querySelectorAll('.pub-year-txt');
+    els.forEach(el => el.textContent = year);
+  }
+
+  function openPublicHasil() {
+    updateActiveYearUI();
+    document.getElementById('p-land').classList.add('hidden');
+    document.getElementById('p-public-hasil').classList.remove('hidden');
+    window.scrollTo(0, 0);
+
+    // Populate OPD Select if empty
+    const select = document.getElementById('select-public-opd');
+    if (select && select.options.length <= 1) {
+      populatePublicOpdDropdown();
+    }
+  }
+
+  function closePublicHasil() {
+    document.getElementById('p-public-hasil').classList.add('hidden');
+    document.getElementById('p-land').classList.remove('hidden');
+    window.scrollTo(0, 0);
+  }
+
+  function populatePublicOpdDropdown() {
+    const select = document.getElementById('select-public-opd');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Pilih OPD --</option>';
+
+    if (typeof SETTINGS !== 'undefined' && SETTINGS.USE_FIREBASE) {
+      const users = typeof Firebase !== 'undefined' ? Firebase.getCachedMasterUser() : null;
+      if (users) {
+        const opds = [...new Set(Object.values(users).map(u => u.opd || u.username).filter(Boolean))].sort();
+        opds.forEach(opd => {
+          const opt = document.createElement('option');
+          opt.value = opd;
+          opt.textContent = opd;
+          select.appendChild(opt);
+        });
+        return;
+      }
+    }
+
+    // Fallback via google.script.run
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run.withSuccessHandler(function(list) {
+        if (list && Array.isArray(list)) {
+          list.forEach(opd => {
+            const opt = document.createElement('option');
+            opt.value = opd;
+            opt.textContent = opd;
+            select.appendChild(opt);
+          });
+        }
+      }).getOpdList();
+    }
+  }
+
+  function loadPublicOpdHasil() {
+    const select = document.getElementById('select-public-opd');
+    const opdName = select ? select.value : '';
+
+    const placeholder = document.getElementById('pub-placeholder');
+    const loading = document.getElementById('pub-loading');
+    const results = document.getElementById('pub-results-content');
+
+    if (!opdName) {
+      if (placeholder) placeholder.classList.remove('hidden');
+      if (loading) loading.classList.add('hidden');
+      if (results) results.classList.add('hidden');
+      currentPublicData = null;
+      return;
+    }
+
+    if (placeholder) placeholder.classList.add('hidden');
+    if (loading) loading.classList.remove('hidden');
+    if (results) results.classList.add('hidden');
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (loading) loading.classList.add('hidden');
+        if (!res || res.error) {
+          alert(res ? res.error : 'Gagal memuat data evaluasi OPD.');
+          return;
+        }
+        currentPublicData = res;
+        if (results) results.classList.remove('hidden');
+        renderPublicHasil(res);
+      })
+      .withFailureHandler(function(err) {
+        if (loading) loading.classList.add('hidden');
+        alert('Terjadi kesalahan: ' + err.message);
+      })
+      .getPublicEvaluasiOpd(opdName);
+  }
+
+  function renderPublicHasil(data) {
+    if (!data) return;
+
+    // Render Index Cards
+    const elMandiri = document.getElementById('pub-idx-mandiri');
+    const elLblMandiri = document.getElementById('pub-lbl-mandiri');
+    if (elMandiri) elMandiri.textContent = data.indeks.mandiri || '0.00';
+    if (elLblMandiri) elLblMandiri.textContent = getPredikat(Number(data.indeks.mandiri) || 0);
+
+    const elEval = document.getElementById('pub-idx-eval');
+    const elLblEval = document.getElementById('pub-lbl-eval');
+    if (elEval) elEval.textContent = data.indeks.evaluator || 'Belum Dinilai';
+    if (elLblEval) elLblEval.textContent = data.indeks.evaluator !== 'Belum Dinilai' ? getPredikat(Number(data.indeks.evaluator) || 0) : 'Belum Diverifikasi';
+
+    const elProv = document.getElementById('pub-idx-prov');
+    const elLblProv = document.getElementById('pub-lbl-prov');
+    if (elProv) elProv.textContent = data.indeks.provinsi || 'Belum Dinilai';
+    if (elLblProv) elLblProv.textContent = data.indeks.provinsi !== 'Belum Dinilai' ? getPredikat(Number(data.indeks.provinsi) || 0) : 'Belum Diverifikasi';
+
+    applyPublicFilter();
+  }
+
+  function applyPublicFilter() {
+    if (!currentPublicData || !currentPublicData.items) return;
+
+    const container = document.getElementById('pub-soal-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const filterRadio = document.querySelector('input[name="pubFilter"]:checked');
+    const filterVal = filterRadio ? filterRadio.value : 'all';
+
+    const filtered = currentPublicData.items.filter(item => {
+      if (filterVal === 'notes') {
+        return (item.catatan_evaluator && item.catatan_evaluator.trim() !== '') ||
+               (item.catatan_provinsi && item.catatan_provinsi.trim() !== '');
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="brut-card text-center py-4 bg-white"><p class="mb-0 fw-bold">Tidak ada indikator yang sesuai dengan filter.</p></div>';
+      return;
+    }
+
+    filtered.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'brut-card p-3 bg-white';
+      
+      const catEvalHtml = item.catatan_evaluator 
+        ? `<div class="p-2 mt-2 bg-light border border-dark rounded small"><b>Catatan Evaluator Organisasi:</b> ${escapeHtml(item.catatan_evaluator)}</div>`
+        : `<div class="text-muted small mt-1"><i>Catatan Evaluator Organisasi: -</i></div>`;
+
+      const catProvHtml = item.catatan_provinsi
+        ? `<div class="p-2 mt-2 bg-light border border-dark rounded small"><b>Catatan Evaluator Provinsi:</b> ${escapeHtml(item.catatan_provinsi)}</div>`
+        : `<div class="text-muted small mt-1"><i>Catatan Evaluator Provinsi: -</i></div>`;
+
+      const buktiHtml = item.link_bukti 
+        ? `<a href="${escapeHtml(item.link_bukti)}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2 mt-1 fw-bold"><i class="bi bi-link-45deg"></i> Bukti Dukung</a>`
+        : `<span class="small text-muted mt-1 d-inline-block">Bukti Dukung: -</span>`;
+
+      card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start mb-2 pb-2 border-bottom border-black">
+          <div>
+            <span class="badge bg-black text-white me-2">No. ${item.no}</span>
+            <span class="fw-bold text-uppercase">${escapeHtml(item.indikator || item.id_soal)}</span>
+          </div>
+          <span class="badge bg-secondary">Bobot: ${item.bobot || 0}</span>
+        </div>
+        <p class="small mb-3 fw-semibold">${escapeHtml(item.pertanyaan)}</p>
+        
+        <div class="row g-2">
+          <!-- Mandiri -->
+          <div class="col-md-4">
+            <div class="p-2 border border-2 border-black rounded h-100" style="background: #fff9db;">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="small fw-bold text-uppercase">Mandiri</span>
+                <span class="badge bg-dark fs-6">${item.skala_responden !== "" ? 'Level ' + item.skala_responden : '-'}</span>
+              </div>
+              ${buktiHtml}
+            </div>
+          </div>
+          
+          <!-- Evaluator Organisasi -->
+          <div class="col-md-4">
+            <div class="p-2 border border-2 border-black rounded h-100" style="background: #e7f5ff;">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="small fw-bold text-uppercase">Evaluator Organisasi</span>
+                <span class="badge ${item.skala_evaluator !== "" ? 'bg-primary' : 'bg-secondary'} fs-6">
+                  ${item.skala_evaluator !== "" ? 'Level ' + item.skala_evaluator : 'Belum Dinilai'}
+                </span>
+              </div>
+              ${catEvalHtml}
+            </div>
+          </div>
+
+          <!-- Evaluator Provinsi -->
+          <div class="col-md-4">
+            <div class="p-2 border border-2 border-black rounded h-100" style="background: #ebfbee;">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="small fw-bold text-uppercase">Evaluator Provinsi</span>
+                <span class="badge ${item.skala_provinsi !== "" ? 'bg-success' : 'bg-secondary'} fs-6">
+                  ${item.skala_provinsi !== "" ? 'Level ' + item.skala_provinsi : 'Belum Dinilai'}
+                </span>
+              </div>
+              ${catProvHtml}
+            </div>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function getPredikat(val) {
+    const n = parseFloat(val);
+    if (isNaN(n) || n === 0) return '-';
+    if (n >= 4.51) return "PELAYANAN PRIMA (A)";
+    if (n >= 4.01) return "SANGAT BAIK (A-)";
+    if (n >= 3.51) return "BAIK (B)";
+    if (n >= 3.01) return "BAIK DENGAN CATATAN (B-)";
+    if (n >= 2.51) return "CUKUP (C)";
+    if (n >= 2.01) return "CUKUP DENGAN CATATAN (C-)";
+    if (n >= 1.51) return "BURUK (D)";
+    if (n >= 1.01) return "SANGAT BURUK (E)";
+    return "GAGAL (F)";
+  }
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
 </script>
