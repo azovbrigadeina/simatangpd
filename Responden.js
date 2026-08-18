@@ -473,3 +473,92 @@ function cekStatusPeriode(namaOPD) {
     tutup: fmt(tglTutup)
   };
 }
+
+/**
+ * Mengambil hasil evaluasi dan penilaian OPD untuk tampilan publik / responden
+ */
+function getPublicEvaluasiOpd(opdName) {
+  if (!opdName) return { error: "Nama OPD harus dipilih" };
+  
+  const masterSoal = getPertanyaan();
+  const cleanOpd = opdName.toString().trim();
+  let verifData = {};
+  let jawabanData = {};
+  
+  if (SETTINGS.USE_FIREBASE) {
+    const key = Firebase.escapeKey(cleanOpd);
+    verifData = Firebase.get(`verifikasi/${key}`) || {};
+    jawabanData = Firebase.get(`jawaban/${key}`) || {};
+  } else {
+    // Fallback Google Sheets
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheetV = ss.getSheetByName("Verifikasi");
+    if (sheetV) {
+      const dataV = sheetV.getDataRange().getValues();
+      for (let i = 1; i < dataV.length; i++) {
+        if (dataV[i][1] === cleanOpd) {
+          const idSoal = dataV[i][2].toString();
+          verifData[idSoal] = {
+            skala_responden: dataV[i][3],
+            skala_evaluator: dataV[i][4],
+            catatan_evaluator: dataV[i][5],
+            skala_provinsi: dataV[i][6],
+            catatan_provinsi: dataV[i][7]
+          };
+        }
+      }
+    }
+  }
+
+  let totalSkalaMandiri = 0, countMandiri = 0;
+  let totalSkalaEval = 0, countEval = 0;
+  let totalSkalaProv = 0, countProv = 0;
+
+  const items = masterSoal.map(p => {
+    const idSoal = (p[1] || "").toString().trim();
+    const idKey = Firebase.escapeKey ? Firebase.escapeKey(idSoal) : idSoal;
+    
+    const v = verifData[idKey] || verifData[idSoal] || {};
+    const j = jawabanData[idKey] || jawabanData[idSoal] || {};
+
+    const skalaResp = v.skala_responden !== undefined ? v.skala_responden : (j.skala || "");
+    const skalaEval = v.skala_evaluator !== undefined ? v.skala_evaluator : "";
+    const catEval = v.catatan_evaluator || "";
+    const skalaProv = v.skala_provinsi !== undefined ? v.skala_provinsi : "";
+    const catProv = v.catatan_provinsi || "";
+
+    if (skalaResp !== "" && !isNaN(skalaResp)) { totalSkalaMandiri += Number(skalaResp); countMandiri++; }
+    if (skalaEval !== "" && !isNaN(skalaEval)) { totalSkalaEval += Number(skalaEval); countEval++; }
+    if (skalaProv !== "" && !isNaN(skalaProv)) { totalSkalaProv += Number(skalaProv); countProv++; }
+
+    return {
+      no: p[0],
+      id_soal: idSoal,
+      pertanyaan: p[2],
+      level: p[3],
+      indikator: p[4],
+      bobot: p[7],
+      skala_responden: skalaResp,
+      link_bukti: j.link || "",
+      skala_evaluator: skalaEval,
+      catatan_evaluator: catEval,
+      skala_provinsi: skalaProv,
+      catatan_provinsi: catProv
+    };
+  });
+
+  const idxMandiri = countMandiri > 0 ? (totalSkalaMandiri / countMandiri).toFixed(2) : "0.00";
+  const idxEval = countEval > 0 ? (totalSkalaEval / countEval).toFixed(2) : "Belum Dinilai";
+  const idxProv = countProv > 0 ? (totalSkalaProv / countProv).toFixed(2) : "Belum Dinilai";
+
+  return {
+    opd: cleanOpd,
+    indeks: {
+      mandiri: idxMandiri,
+      evaluator: idxEval,
+      provinsi: idxProv
+    },
+    items: items
+  };
+}
+
