@@ -564,9 +564,11 @@ function getPublicEvaluasiOpd(opdName) {
       indikator: g.indikator,
       bobot: g.bobot,
       pertanyaan_terpilih: chosenText,
+      skala_responden: skalaResp,
       link_bukti: j.link_arsip || j.link || "",
       is_arsip: Boolean(j.link_arsip),
       skala_evaluator: skalaEval,
+
 
       catatan_evaluator: catEval,
       skala_provinsi: skalaProv,
