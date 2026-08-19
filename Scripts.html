@@ -1684,8 +1684,12 @@
         : `<div class="text-muted small mt-1"><i>Catatan Evaluator Provinsi: -</i></div>`;
 
       const buktiHtml = item.link_bukti 
-        ? `<a href="${escapeHtml(item.link_bukti)}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2 mt-2 fw-bold d-inline-block"><i class="bi bi-link-45deg"></i> Bukti Dukung</a>`
+        ? (item.is_arsip 
+            ? `<a href="${escapeHtml(item.link_bukti)}" target="_blank" class="btn btn-sm btn-outline-success py-0 px-2 mt-2 fw-bold d-inline-block" title="Snapshot Bukti Dukung Tersimpan & Terkunci di Drive Admin"><i class="bi bi-shield-check me-1"></i> Bukti Dukung (Snapshot)</a>`
+            : `<a href="${escapeHtml(item.link_bukti)}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2 mt-2 fw-bold d-inline-block"><i class="bi bi-link-45deg"></i> Bukti Dukung</a>`
+          )
         : `<span class="small text-muted mt-2 d-inline-block">Bukti Dukung: -</span>`;
+
 
       // Highlight Box Evaluator Organisasi jika ada perbedaan
       const evalBoxStyle = item.is_different_eval 
