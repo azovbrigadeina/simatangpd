@@ -23,7 +23,7 @@
 - Consumes: `namaOPD` string parameter.
 - Produces: `resnapshotAllByOPD(namaOPD)` returning `{ success: true, count: N }`.
 
-- [ ] **Step 1: Implement `resnapshotAllByOPD` in `Evaluator.js`**
+- [x] **Step 1: Implement `resnapshotAllByOPD` in `Evaluator.js`**
 
 ```javascript
 function resnapshotAllByOPD(namaOPD) {
@@ -60,7 +60,7 @@ function resnapshotAllByOPD(namaOPD) {
 }
 ```
 
-- [ ] **Step 2: Commit backend changes**
+- [x] **Step 2: Commit backend changes**
 
 ```bash
 git add Evaluator.js
@@ -78,7 +78,7 @@ git commit -m "feat(evaluator): add resnapshotAllByOPD backend function"
 - Consumes: `google.script.run.resnapshotAllByOPD(opdName)`.
 - Produces: Interactive button `<button onclick="doResnapshotAll('${opdName}')">` and modal UI refresh.
 
-- [ ] **Step 1: Add `doResnapshotAll` handler in `Scripts.html`**
+- [x] **Step 1: Add `doResnapshotAll` handler in `Scripts.html`**
 
 ```javascript
 function doResnapshotAll(opdName) {
@@ -109,7 +109,7 @@ function doResnapshotAll(opdName) {
 }
 ```
 
-- [ ] **Step 2: Add "Refresh Semua Snapshot" button in `renderVList` toolbar**
+- [x] **Step 2: Add "Refresh Semua Snapshot" button in `renderVList` toolbar**
 
 Add button to the right-aligned button group in the header control card:
 
@@ -119,7 +119,7 @@ Add button to the right-aligned button group in the header control card:
 </button>
 ```
 
-- [ ] **Step 3: Commit frontend changes**
+- [x] **Step 3: Commit frontend changes**
 
 ```bash
 git add Scripts.html
@@ -133,11 +133,11 @@ git commit -m "feat(ui): add Refresh Semua Snapshot button and frontend handler"
 **Files:**
 - Execute deployment script according to `<RULE[AGENTS.md]>`.
 
-- [ ] **Step 1: Push code with clasp**
+- [x] **Step 1: Push code with clasp**
 
 Run: `npx -y @google/clasp push -f`
 
-- [ ] **Step 2: Create new version and deploy**
+- [x] **Step 2: Create new version and deploy**
 
 Run:
 ```bash
@@ -145,7 +145,7 @@ V_NUM=$(npx -y @google/clasp version "Add Global Refresh Snapshot feature for ve
 npx -y @google/clasp deploy -i "AKfycbzoScMV1ULBGAel1KHaebq7EPnz_u3m54HR3409liJgPi7qmNJ7k67rCifrkF8LJgtrgg" -V "$V_NUM" -d "Release @$V_NUM"
 ```
 
-- [ ] **Step 3: Commit final plan verification**
+- [x] **Step 3: Commit final plan verification**
 
 ```bash
 git add docs/superpowers/plans/2026-09-02-refresh-snapshot-global.md
