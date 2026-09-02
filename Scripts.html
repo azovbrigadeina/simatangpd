@@ -583,6 +583,14 @@
   let opdListCache = [];
   let activeFilter = 'semua';
   let currentSelectedOPDStatus = 'SUBMITTED';
+  let currentSelectedOPDSubmittedAt = '';
+  let showOriginalLink = false;
+
+  function toggleLinkAsli(checked, opdName) {
+    showOriginalLink = checked;
+    const opd = opdName || (document.getElementById('v-det') ? document.getElementById('v-det').dataset.currentOpd : '');
+    if (opd) renderVList(opd);
+  }
 
   function initV() {
     const isProv = sess.role === 'Provinsi';
@@ -694,6 +702,7 @@
       Swal.close(); 
       vData = res.items || [];
       currentSelectedOPDStatus = res.status || (res.isFinal ? 'SUBMITTED' : 'DRAFT');
+      currentSelectedOPDSubmittedAt = res.submittedAt || '';
       // Sembunyikan grid, tampilkan detail
       document.getElementById('v-card-grid').classList.add('hidden');
       document.getElementById('v-progress-section').classList.add('hidden');
@@ -728,6 +737,27 @@
     const isProv = sess.role === 'Provinsi';
     const isDraft = (currentSelectedOPDStatus === 'DRAFT');
 
+    let submittedAtBadge = '';
+    if (currentSelectedOPDSubmittedAt) {
+      try {
+        const d = new Date(currentSelectedOPDSubmittedAt);
+        const formattedDate = !isNaN(d.getTime()) 
+          ? d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) 
+          : currentSelectedOPDSubmittedAt;
+        submittedAtBadge = `
+          <div class="badge bg-light text-dark border p-2 align-middle shadow-sm" title="Waktu pengiriman final oleh responden">
+            <i class="bi bi-clock-history me-1 text-primary"></i>
+            <strong>Submit Responden:</strong> ${formattedDate}
+          </div>`;
+      } catch (e) {
+        submittedAtBadge = `
+          <div class="badge bg-light text-dark border p-2 align-middle shadow-sm">
+            <i class="bi bi-clock-history me-1 text-primary"></i>
+            <strong>Submit Responden:</strong> ${currentSelectedOPDSubmittedAt}
+          </div>`;
+      }
+    }
+
     let draftBanner = '';
     if (isDraft) {
       draftBanner = `
@@ -741,11 +771,20 @@
     }
 
     let h = draftBanner + `
-      <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <i class="bi bi-info-circle-fill me-1"></i> <b>Petunjuk Pengisian:</b> Periksa kesesuaian jawaban dan bukti dukung OPD <b>${opdName}</b>, tentukan skala nilai ${isProv ? 'validasi provinsi' : 'evaluasi'}, lalu simpan hasil verifikasi di bagian bawah.
+      <div class="alert alert-info d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex align-items-center flex-wrap gap-2">
+          <div>
+            <i class="bi bi-info-circle-fill me-1"></i> <b>Petunjuk Pengisian:</b> Periksa kesesuaian jawaban dan bukti dukung OPD <b>${opdName}</b>, tentukan skala nilai ${isProv ? 'validasi provinsi' : 'evaluasi'}, lalu simpan hasil verifikasi di bagian bawah.
+          </div>
+          ${submittedAtBadge}
         </div>
-        <div class="d-flex gap-2 flex-shrink-0 ms-3">
+        <div class="d-flex gap-2 align-items-center flex-shrink-0 ms-auto">
+          <div class="form-check form-switch d-inline-block ms-2 me-2 align-middle" title="Aktifkan untuk melihat link bukti dukung asli milik responden">
+            <input class="form-check-input" type="checkbox" id="switch-link-asli" onchange="showOriginalLink=this.checked; renderVList('${opdName}');" ${showOriginalLink ? 'checked' : ''}>
+            <label class="form-check-label fw-bold text-dark small" for="switch-link-asli">
+              <i class="bi bi-folder-symlink me-1"></i>Cek Link Evd. Asli
+            </label>
+          </div>
           <button class="btn btn-sm btn-outline-primary fw-bold" onclick="samakanSkorSemua()" ${isDraft ? 'disabled' : ''}>
             <i class="bi bi-check-all"></i> Samakan Semua (dari ${isProv ? 'Kabupaten' : 'Responden'})
           </button>
@@ -794,9 +833,19 @@
         ? `<span class="badge bg-success ms-2" title="Bukti dukung telah diarsip & dikunci di Drive Admin"><i class="bi bi-shield-check me-1"></i>🔒 Snapshot Admin</span>` 
         : '';
 
-      const linkHtml = it.link 
-        ? `<a href="${it.link}" target="_blank" class="btn btn-sm btn-outline-secondary text-truncate" style="max-width: 250px;"><i class="bi bi-link-45deg me-1"></i> ${it.link}</a>${archiveBadge}`
-        : `<span class="badge bg-light text-muted border">Tidak Ada Link</span>`;
+      let linkHtml = '';
+      if (it.link) {
+        const snapBtn = it.is_arsip
+          ? `<a href="${it.link}" target="_blank" class="btn btn-sm btn-outline-success text-truncate me-1" style="max-width: 250px;" title="Buka Bukti Snapshot Admin (Terkunci)"><i class="bi bi-shield-check me-1"></i> Bukti Snapshot</a>`
+          : `<a href="${it.link}" target="_blank" class="btn btn-sm btn-outline-secondary text-truncate me-1" style="max-width: 250px;"><i class="bi bi-link-45deg me-1"></i> ${it.link}</a>`;
+        let origBtn = '';
+        if (showOriginalLink && it.link_original) {
+          origBtn = `<a href="${it.link_original}" target="_blank" class="btn btn-sm btn-outline-warning text-dark text-truncate me-1" style="max-width: 250px;" title="Link Drive Asli milik Responden"><i class="bi bi-folder-symlink me-1"></i> Link Evd. Asli</a>`;
+        }
+        linkHtml = snapBtn + origBtn + archiveBadge;
+      } else {
+        linkHtml = `<span class="badge bg-light text-muted border">Tidak Ada Link</span>`;
+      }
 
       return `
         <div class="brut-card q-card mb-3 p-3">
