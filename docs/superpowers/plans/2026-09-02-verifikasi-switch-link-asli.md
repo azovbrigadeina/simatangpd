@@ -24,11 +24,11 @@
 - Consumes: `status_pengisian/${escapedOPD}` (Firebase data) containing `updated_at`, and `jawaban/${escapedOPD}` containing `timestamp`.
 - Produces: `getJawabanByOPD` payload with `submittedAt` property and `items[].item_timestamp`.
 
-- [ ] **Step 1: Inspect `Evaluator.js` around `getJawabanByOPD`**
+- [x] **Step 1: Inspect `Evaluator.js` around `getJawabanByOPD`**
 
 Check exact lines around 240-278 in `Evaluator.js`.
 
-- [ ] **Step 2: Modify `getJawabanByOPD` in `Evaluator.js`**
+- [x] **Step 2: Modify `getJawabanByOPD` in `Evaluator.js`**
 
 Include `submittedAt` from `statusData.updated_at` and `item_timestamp` from `j.timestamp`.
 
@@ -66,7 +66,7 @@ Include `submittedAt` from `statusData.updated_at` and `item_timestamp` from `j.
     return { items: items, status: statusStr, isFinal: statusStr === "SUBMITTED", submittedAt: submittedAt };
 ```
 
-- [ ] **Step 3: Commit backend changes**
+- [x] **Step 3: Commit backend changes**
 
 ```bash
 git add Evaluator.js
@@ -84,15 +84,15 @@ git commit -m "feat(evaluator): pass submittedAt and item_timestamp for verifica
 - Consumes: `res.submittedAt` and `vData[].link_original` from `getJawabanByOPD`.
 - Produces: Interactive switch `switch-link-asli` and audit badge in verification view.
 
-- [ ] **Step 1: Add global state and toggle handler in `Scripts.html`**
+- [x] **Step 1: Add global state and toggle handler in `Scripts.html`**
 
 Define `let showOriginalLink = false;` and `function toggleLinkAsli(checked)` to re-render link buttons.
 
-- [ ] **Step 2: Capture `res.submittedAt` in `pilihOPD`**
+- [x] **Step 2: Capture `res.submittedAt` in `pilihOPD`**
 
 Store `currentSelectedOPDSubmittedAt = res.submittedAt || '';`.
 
-- [ ] **Step 3: Update `renderVList` Header HTML**
+- [x] **Step 3: Update `renderVList` Header HTML**
 
 Add the "Cek Link Evd. Asli" switch control and formatted timestamp badge to `renderVList`.
 
@@ -105,7 +105,7 @@ Add the "Cek Link Evd. Asli" switch control and formatted timestamp badge to `re
 </div>
 ```
 
-- [ ] **Step 4: Update `linkHtml` rendering per item**
+- [x] **Step 4: Update `linkHtml` rendering per item**
 
 Render both Snapshot Admin link and Original Link when `showOriginalLink` is true:
 
@@ -123,7 +123,7 @@ Render both Snapshot Admin link and Original Link when `showOriginalLink` is tru
       }
 ```
 
-- [ ] **Step 5: Commit frontend changes**
+- [x] **Step 5: Commit frontend changes**
 
 ```bash
 git add Scripts.html
@@ -137,11 +137,11 @@ git commit -m "feat(ui): add Cek Link Evd. Asli switch and submission audit time
 **Files:**
 - Execute deployment script according to `<RULE[AGENTS.md]>`.
 
-- [ ] **Step 1: Push code with clasp**
+- [x] **Step 1: Push code with clasp**
 
 Run: `npx -y @google/clasp push -f`
 
-- [ ] **Step 2: Create new version and deploy**
+- [x] **Step 2: Create new version and deploy**
 
 Run:
 ```bash
@@ -149,7 +149,7 @@ V_NUM=$(npx -y @google/clasp version "Add Cek Link Evd Asli switch and audit tim
 npx -y @google/clasp deploy -i "AKfycbzoScMV1ULBGAel1KHaebq7EPnz_u3m54HR3409liJgPi7qmNJ7k67rCifrkF8LJgtrgg" -V "$V_NUM" -d "Release @$V_NUM"
 ```
 
-- [ ] **Step 3: Commit final plan verification**
+- [x] **Step 3: Commit final plan verification**
 
 ```bash
 git add docs/superpowers/plans/2026-09-02-verifikasi-switch-link-asli.md
