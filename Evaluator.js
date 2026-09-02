@@ -245,6 +245,7 @@ function getJawabanByOPD(namaOPD) {
     if (!statusStr) {
       statusStr = Object.keys(jawabanOPD).length >= 11 ? "SUBMITTED" : "DRAFT";
     }
+    const submittedAt = statusData ? (statusData.updated_at || "") : "";
     
     const items = Object.entries(jawabanOPD).map(([idSoal, j]) => {
       const level = j.level;
@@ -262,6 +263,7 @@ function getJawabanByOPD(namaOPD) {
         link: effectiveLink,
         link_original: j.link || "",
         is_arsip: Boolean(j.link_arsip),
+        item_timestamp: j.timestamp || "",
         skala_evaluator: verif ? (verif.skala_evaluator !== undefined ? verif.skala_evaluator : "") : "",
         catatan: verif ? (verif.catatan_evaluator || "") : "",
         skala_provinsi: verif ? (verif.skala_provinsi !== undefined ? verif.skala_provinsi : "") : "",
@@ -274,7 +276,7 @@ function getJawabanByOPD(namaOPD) {
       return String(a.id_soal).localeCompare(String(b.id_soal), undefined, { numeric: true, sensitivity: 'base' });
     });
     
-    return { items: items, status: statusStr, isFinal: statusStr === "SUBMITTED" };
+    return { items: items, status: statusStr, isFinal: statusStr === "SUBMITTED", submittedAt: submittedAt };
   }
 
   // Fallback ke Google Sheets
