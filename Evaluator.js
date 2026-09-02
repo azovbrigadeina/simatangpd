@@ -845,3 +845,42 @@ function simpanExemptedKeys(keysList) {
   return { status: "success", pesan: "Pengaturan pengecualian berhasil disimpan." };
 }
 
+/**
+ * Memperbarui snapshot arsip Google Drive untuk seluruh bukti dukung pada suatu OPD.
+ * @param {string} namaOPD
+ * @returns {{ success: boolean, count?: number, message: string }}
+ */
+function resnapshotAllByOPD(namaOPD) {
+  if (!SETTINGS.USE_FIREBASE) return { success: false, message: "Hanya berlaku untuk Firebase." };
+  if (!namaOPD) return { success: false, message: "Nama OPD tidak valid." };
+
+  try {
+    const escapedOPD = Firebase.escapeKey(namaOPD);
+    const jawabanOPD = Firebase.get(`jawaban/${escapedOPD}`) || {};
+    const cleanOpd = namaOPD.toString().trim();
+    
+    let updatedCount = 0;
+    const updates = {};
+
+    Object.entries(jawabanOPD).forEach(([idSoal, item]) => {
+      if (item && item.link && item.link.trim() !== "") {
+        const newArsip = snapshotDriveFolder(cleanOpd, item.link.trim());
+        if (newArsip) {
+          updates[`${idSoal}/link_arsip`] = newArsip;
+          updatedCount++;
+        }
+      }
+    });
+
+    if (Object.keys(updates).length > 0) {
+      Firebase.patch(`jawaban/${escapedOPD}`, updates);
+    }
+
+    return { success: true, count: updatedCount, message: `Berhasil memperbarui ${updatedCount} snapshot bukti dukung.` };
+  } catch (e) {
+    Logger.log("Error pada resnapshotAllByOPD: " + e.toString());
+    return { success: false, message: e.toString() };
+  }
+}
+
+
