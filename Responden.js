@@ -71,6 +71,24 @@ function getOrCreateArchiveParentFolder() {
   return DriveApp.createFolder(folderName);
 }
 
+/**
+ * Menyalin seluruh isi folder secara rekursif (termasuk file & subfolder)
+ */
+function copyFolderRecursive(sourceFolder, targetFolder) {
+  const files = sourceFolder.getFiles();
+  while (files.hasNext()) {
+    const file = files.next();
+    file.makeCopy(file.getName(), targetFolder);
+  }
+
+  const subfolders = sourceFolder.getFolders();
+  while (subfolders.hasNext()) {
+    const subfolder = subfolders.next();
+    const newSubFolder = targetFolder.createFolder(subfolder.getName());
+    copyFolderRecursive(subfolder, newSubFolder);
+  }
+}
+
 function snapshotDriveFolder(opdName, originalDriveUrl) {
   if (!originalDriveUrl) return null;
   const parsed = parseDriveUrl(originalDriveUrl);
@@ -87,11 +105,7 @@ function snapshotDriveFolder(opdName, originalDriveUrl) {
         const targetFolderName = `[${cleanOpd}] - ${originalFolderName}`;
         const targetFolder = parentArchive.createFolder(targetFolderName);
         
-        const files = sourceFolder.getFiles();
-        while (files.hasNext()) {
-          const file = files.next();
-          file.makeCopy(file.getName(), targetFolder);
-        }
+        copyFolderRecursive(sourceFolder, targetFolder);
         return targetFolder.getUrl();
       } catch (e) {
         parsed.type = 'FILE';
