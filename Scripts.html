@@ -787,6 +787,9 @@
             </div>
           </div>
           <div class="d-flex gap-2 align-items-center flex-wrap">
+            <button class="btn btn-sm btn-outline-info fw-bold" onclick="doResnapshotAll('${opdName}')" title="Buat ulang seluruh snapshot bukti dukung OPD ini secara rekursif">
+              <i class="bi bi-arrow-repeat me-1"></i>Refresh Semua Snapshot
+            </button>
             <button class="btn btn-sm btn-outline-primary fw-bold" onclick="samakanSkorSemua()" ${isDraft ? 'disabled' : ''}>
               <i class="bi bi-check-all me-1"></i>Samakan Semua (dari ${isProv ? 'Kabupaten' : 'Responden'})
             </button>
@@ -935,6 +938,33 @@
       timer: 1000, 
       showConfirmButton: false 
     });
+  }
+
+  function doResnapshotAll(opdName) {
+    if (!opdName) return;
+    Swal.fire({
+      title: 'Memproses Snapshot Ulang...',
+      html: 'Sistem sedang menyalin seluruh folder & subfolder bukti dukung OPD <b>' + escapeHtml(opdName) + '</b> secara rekursif...',
+      allowOutsideClick: false,
+      didOpen: () => { Swal.showLoading(); }
+    });
+
+    google.script.run.withSuccessHandler(res => {
+      if (res && res.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: res.message || 'Snapshot bukti dukung berhasil diperbarui.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        pilihOPD(opdName);
+      } else {
+        Swal.fire('Gagal', res.message || 'Gagal memperbarui snapshot.', 'error');
+      }
+    }).withFailureHandler(err => {
+      Swal.fire('Error', 'Gagal memproses snapshot: ' + (err.message || err), 'error');
+    }).resnapshotAllByOPD(opdName);
   }
 
   function kirimV(isDraftSave) { 
